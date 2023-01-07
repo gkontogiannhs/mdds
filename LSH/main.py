@@ -1,23 +1,29 @@
-# import the LSH class and the LSHFunction class
-from lsh import LSH, LSHFunction
-import numpy as np
+from lsh import * 
 
 
 if __name__ == "__main__":
-    # create a dataset of 10 random vectors
-    np.random.seed(42)
-    dataset = [np.random.randn(100) for _ in range(10)]
 
-    # create an LSH function that uses 10 hash functions
-    lsh_function = LSHFunction(num_hash_functions=10, dimensions=100)
+    data = [
+            "Patricia loves the sound of nails strongly pressed against the chalkboard",
+            "She was sad to hear that fireflies are facing extinction due to artificial light, habitat loss, and pesticides",
+            "Im confused: when people ask me whats up, and I point, they groan"
+            ]
+    k = 2
 
-    # create an LSH instance using the LSH function and the dataset
-    lsh = LSH(dataset, [lsh_function])
+    # create vocabulary with shingles        
+    vocabulary = set().union(*[shingle(sent, k) for sent in data])
 
-    # generate a random query vector
-    query_vector = np.random.randn(100)
+    # one hot representation of each document
+    one_hot_matrix = np.array([one_hot_encoding(vocabulary, sent) for sent in data]).T
+    # print(one_hot_matrix)
 
-    # perform a range query with a range of 0.5
-    result = lsh.range_query(query_vector, range=0.5)
+    # create minhash function
+    minhash = MinHash(one_hot_matrix, nfuncs=20)
 
-    print(result)  # prints a list of vectors that are similar to the query vector
+    # each column represent the signature of each document
+    sign_matrix = minhash.sign_matrix #; print(sign_matrix)
+
+    # create LSH model providing the data vectors, hash techuiqe and numbers of bands to split
+    lsh = LSH(sign_matrix, b=5)
+
+    print(lsh.bands)
