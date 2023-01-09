@@ -161,7 +161,7 @@ class RangeTree2D:
         return Node(left=left, right=right, value=points[median], y_tree=RangeTree1D(points, axis=1))
 
 
-    def query(self, x_range, y_range):
+    def range_search(self, x_range, y_range):
         if self.root is None: return []
         
         if x_range[0] <= self.root.value[self.axis] <= x_range[1]:
@@ -172,10 +172,10 @@ class RangeTree2D:
         values = []
         if x_range[0] > self.root.value[self.axis]:
             if self.root.right:
-                values += self.root.right.query(x_range, y_range)
+                values += self.root.right.range_search(x_range, y_range)
         elif x_range[1] < self.root.value[self.axis]:
             if self.root.left:
-                values += self.root.left.query(x_range, y_range)
+                values += self.root.left.range_search(x_range, y_range)
         return values
 
 

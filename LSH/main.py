@@ -3,18 +3,14 @@ from lsh import kshingle, one_hot_encoding, jaccard, cosine_similarity
 
 from numpy import array
 from pandas import read_csv
-from nltk.corpus import stopwords
-
 
 if __name__ == "__main__":
-    
-    # stop words vocab
-    stop_words = set(stopwords.words('english'))
 
-    # data
+    # load datasets
     dataset = read_csv('../List_of_computer_scientists.csv')
-    data = dataset['Education'].apply(lambda doc: ' '.join([w for w in doc.split() if w not in stop_words])).to_list()
- 
+
+    data = dataset['Education'].to_list()
+
     k = 5 # shingle size step
 
     # create vocabulary with shingles        
@@ -25,10 +21,11 @@ if __name__ == "__main__":
 
     # create LSH model providing the bands magnitute 
     # in fit hashes each column for each band of the sign matrix M to a hash table with k buckets
-    lsh = LSH(nfuncs=100, bands=20).fit(data=one_hot_matrix, buckets=10000)
+    lsh = LSH(nfuncs=100, bands=20).fit(data=one_hot_matrix, buckets=1000)
     
     # get candidates with similarity bigger than 60%
     actual_candidates = lsh.candidates(jaccard, similarity=.6)
+    
     
     for cand_pair, sim in actual_candidates.items():
         print(f"Candidate pair {cand_pair}, similarity: {sim}")

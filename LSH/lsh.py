@@ -132,12 +132,10 @@ class LSH:
         # rows within each band
         r = sm.shape[0] // self.bands
         
-        bands = []
         # split into bands
-        for i in range(0, sm.shape[0], r):
-            # pick r rows and append
-            bands += [sm[i:i+r]]
-
+        # pick r rows and append
+        bands = [sm[i:i+r] for i in range(0, sm.shape[0], r)]
+        
         return array(bands)
 
 

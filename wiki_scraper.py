@@ -109,7 +109,22 @@ if __name__ == '__main__':
     # convert to pandas DataFrame
     df = DataFrame(data, columns=['Name', 'Awards', 'Education'])
 
-    # drop empty education rows
-    # and save to csv without taking into account the index
-    df[df['Education']  != ''].to_csv('List_of_computer_scientists.csv', index=False)
+    # drop blank rows
+    df = df[df['Education']  != '']
+
+    # some extra text preproccessing
+    from nltk.corpus import stopwords
+    from nltk.stem.porter import PorterStemmer
+
+    # stop words vocab
+    stop_words = set(stopwords.words('english'))
+
+    # define stemmer object
+    stemmer = PorterStemmer()
+
+    # apply preproccessing
+    df.loc[:, 'Education'] = df['Education'].apply(lambda doc: ' '.join([stemmer.stem(w) for w in doc.split() if w not in stop_words]))
+
+    # save to csv without taking into account the index
+    df.to_csv('List_of_computer_scientists.csv', index=False)
 
