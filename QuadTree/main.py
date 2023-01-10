@@ -1,25 +1,29 @@
-from quadtree import QuadTree, Rectangle, Point
+from quadtree import QuadTree, Point
 from random import randint
 
 
 if __name__ == '__main__':
-    ps = [Point(randint(0,100), randint(0,100), '') for _ in range(100)]
+
+    # create random poitns
+    points = [Point(randint(0,100), randint(0,100)) for _ in range(100)]
     
-    qt = QuadTree(points=ps, n=4)
+    # build quad tree with max 4 points per tile
+    qtree = QuadTree(points=points, n=4)
+    
+    # define range of query
+    point1 = Point(10, 20)
+    point2 = Point(40, 50)
 
-    point1 = Point(10, 30)
-    point2 = Point(60, 50)
+    # convert to rectangle tile
+    search_region = qtree.bounds_to_rect(point1, point2)
 
-    temp = []
-    for point in ps:
-        if point1.x <= point.x <= point2.x and point1.y <= point.y <= point2.y:
-            temp.append(point)
+    # make query
+    found_points = qtree.range_search(search_region)
+    print(found_points)
 
-    for point in temp:
-        print(f"{point.x, point.y}")
+    # exact seach query: true if found else false
+    assert True == qtree.search(points[randint(0, 99)])
 
-    print()
-    print()
-    found_points = qt.range_search(point1, point2)
-    for point in found_points:
-        print(f"{point.x, point.y}")
+    # radius search, for a given point return neigbors in radius r
+    radius_points = qtree.search_radius(points[20], 5)
+    print(radius_points)

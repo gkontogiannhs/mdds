@@ -1,8 +1,39 @@
+""""
+    The above code is an implementation of a QuadTree data structure in Python, along with related classes like Point, Rectangle, and QuadTree.
+
+    The Point class is used to represent a point in two-dimensional space, with x and y coordinates and an optional payload attribute.
+    The __repr__ and __str__ methods provide a string representation of the point in the format (x, y) and payload if provided.
+
+    The Rectangle class is used to represent a rectangle with a given center point (rx, ry), width (w) and height (h).
+    The contains method is used to check if a given point is within the boundaries of the rectangle and intersects method is used to check
+    if a given rectangle intersects with another rectangle.
+
+    The QuadTree class is the main class and is used to represent the QuadTree data structure. It has a capacity of n points,
+    points array which will keep track of points, a tile attribute which is a Rectangle object and divided attribute which will keep
+    track if the tree is divided or not. The insert method is used to insert a point into the tree. If the point does not lie inside
+    the boundary of the tile or if the capacity of the current tile is already full, then it subdivides the tile into four sub-tiles,
+    each of which can be further divided as necessary.
+
+    This code represents the basic functionality of QuadTree and how to use it to divide the two-dimensional space into smaller regions
+    and quickly find points within a specific region. However, you can add more functionality to it as per your requirements.
+
+    You can also use this tree to perform the spatial queries like range queries, nearest neighbour search and more,
+    but that depends on how you want to use the tree structure.
+"""
+
 class Point:
     def __init__(self, x, y, payload=None):
         self.x = x
         self.y = y
         self.payload = payload
+
+
+    def __repr__(self):
+        return f'{self.x, self.y}: {repr(self.payload)}'
+
+
+    def __str__(self):
+        return '({:.2f}, {:.2f})'.format(self.x, self.y)
 
 
 class Rectangle:
@@ -13,29 +44,37 @@ class Rectangle:
         self.h = h
 
 
+    def __repr__(self):
+        return str(self.rx, self.ry, self.w, self.h)
+
+
+    def __str__(self):
+        return '({:.2f}, {:.2f}, {:.2f}, {:.2f})'.format(self.rx, self.ry, self.w, self.h)
+
+
     # check if point is within tile boundaries
     def contains(self, point):
 
         return (point.x >= self.rx - self.w and
-                point.x < self.rx + self.w and
+                point.x <= self.rx + self.w and
                 point.y >= self.ry - self.h and
-                point.y < self.ry + self.h)
+                point.y <= self.ry + self.h)
 
 
     def intersects(self, rect):
         """
         Return True if this rectangle intersects with the given rectangle.
         """
-        return (self.rx - self.w < rect.rx + rect.w and
-                self.rx + self.w > rect.rx - rect.w and
-                self.ry - self.h < rect.ry + rect.h and
-                self.ry + self.h > rect.ry - rect.h)
+        return (self.rx - self.w <= rect.rx + rect.w or
+                self.rx + self.w >= rect.rx - rect.w or
+                self.ry - self.h <= rect.ry + rect.h or
+                self.ry + self.h >= rect.ry - rect.h)
 
 
 class QuadTree:
     def __init__(self, tile=None, points=[], n=4):
 
-        self.tile = tile if tile else self.calc_root_rect(points) 
+        self.tile = tile if tile else self.calculate_rectangle(points) 
 
         # each tile's capacity of maximum points
         self.capacity = n
@@ -45,7 +84,13 @@ class QuadTree:
         self.divided = False
 
         for point in points:
-            self.insert(point)
+           self.insert(point)
+
+
+    def bounds_to_rect(self, point1, point2):
+        xmin, ymin = min(point1.x, point2.x), min(point1.y, point2.y)
+        xmax, ymax = max(point1.x, point2.x), max(point1.y, point2.y)
+        return Rectangle((xmin+xmax)/2, (ymin+ymax)/2, (xmax-xmin)/2, (ymax-ymin)/2)
 
 
     def subdivide(self):
@@ -57,9 +102,9 @@ class QuadTree:
 
         self.northeast = QuadTree(tile=Rectangle(rx + w/2, ry - h/2 , w/2, h/2), n=self.capacity)
 
-        self.northwest = QuadTree(tile=Rectangle(rx + w/2, ry - h/2 , w/2, h/2), n=self.capacity)
+        self.northwest = QuadTree(tile=Rectangle(rx - w/2, ry - h/2 , w/2, h/2), n=self.capacity)
 
-        self.southeast = QuadTree(tile=Rectangle(rx - w/2, ry + h/2 , w/2, h/2), n=self.capacity)
+        self.southeast = QuadTree(tile=Rectangle(rx + w/2, ry + h/2 , w/2, h/2), n=self.capacity)
 
         self.southwest = QuadTree(tile=Rectangle(rx - w/2, ry + h/2 , w/2, h/2), n=self.capacity)
 
@@ -87,12 +132,11 @@ class QuadTree:
                 self.southwest.insert(point))
 
 
+    # The initial rectangle of the quadtree, often called the root rectangle or bounding box,
+    # should be large enough to enclose all the points that will be inserted into the tree. 
+    # The simplest approach is to define the root rectangle with the minimum and maximum x and y coordinates of all the points in the dataset.
 
-    # One way to determine the boundary of the root node is to find
-    # the minimum and maximum x and y values among all the points in your input list,
-    # and use these values to define the Rectangle object.
-
-    def calc_root_rect(self, points):
+    def calculate_rectangle(self, points):
 
         # find min max for x-coord
         min_x = min(points, key=lambda p: p.x).x
@@ -109,83 +153,74 @@ class QuadTree:
 
         return Rectangle(rx, ry, w, h)
 
-    
-    def exact_search(self, point):
-        
-        # Search the QuadTree for the given point.
-        # Return True if the point is found, False otherwise.
 
-        # If the point does not lie inside the boundaries of the current tile,
-        # it can't be in this quadrant.
-        if not self.tile.contains(point):
+    def search(self, point):
+        """
+        Search the tree for a point and return True if point is found, False otherwise
+        """
+        if not self.tile.contains(point): return False
+
+        if point in self.points: return True
+
+        if not self.divided:
             return False
-
-        # Check if the point is one of the points in this quadrant.
-        if point in self.points:
-            return True
-
-        # If the quadrant has been divided, search the sub-quadrants.
-        if self.divided:
-            return (self.northeast.exact_search(point) or
-                    self.northwest.exact_search(point) or
-                    self.southeast.exact_search(point) or
-                    self.southwest.exact_search(point))
-
-        # If we get here, the point is not in this quadrant.
-        return False
+        else:
+            return (self.northeast.search(point) or
+                    self.northwest.search(point) or
+                    self.southeast.search(point) or
+                    self.southwest.search(point))
 
 
-    def search_radius(self, p, r):
+    def search_radius(self, point, radius):
+        from math import hypot
         """
-        Search the QuadTree for points within `r` units of the given point `p`.
-        Return a list of the points found.
+        Search the tree for points within a given radius of the point
         """
-        # Create a rectangle that represents the search range.
-        rect = Rectangle(p.x, p.y, r, r)
+        # base case : point not found in this tile
+        if not self.tile.contains(point): return []
 
-        # Use the existing search method to find points within the search range.
-        return self.exact_search(rect)
+        results = []
+        # point found
+        for p in self.points:
+            dist = hypot(point.x - p.x, point.y - p.y)
+            if dist <= radius:
+                results += [p]
+
+        # if not divided go through each sub quadrant
+        # and check
+        if not self.divided:
+            return results
+        else:
+            results += self.northeast.search_radius(point, radius)
+            results += self.northwest.search_radius(point, radius)
+            results += self.southeast.search_radius(point, radius)
+            results += self.southwest.search_radius(point, radius)
+
+            return results
 
 
-    def _search(self, rect):
+    def range_search(self, rect):
         """
-        Search the QuadTree for points within the boundaries of the given rectangle.
-        Return a list of the points found.
+        Return a list of all points in the Quadtree that lie within the given rectangle.
         """
-        found_points = []
 
-        # If the search rectangle does not intersect with the current tile,
-        # there's no point in searching this quadrant further.
+        results = []
+        # If the query rectangle does not intersect the tile, return an empty list
         if not self.tile.intersects(rect):
-            return found_points
+            return results
 
-        # Check if any points in this quadrant are within the search rectangle.
+        # Check the points in this node
         for point in self.points:
             if rect.contains(point):
-                found_points.append(point)
+                results.append(point)
 
-        # If the quadrant has been divided, search the sub-quadrants.
+        # If the node has been divided, search the sub-regions
         if self.divided:
-            found_points += self.northeast._search(rect)
-            found_points += self.northwest._search(rect)
-            found_points += self.southeast._search(rect)
-            found_points += self.southwest._search(rect)
+            results += self.northwest.range_search(rect)
+            results += self.northeast.range_search(rect)
+            results += self.southeast.range_search(rect)
+            results += self.southwest.range_search(rect)
 
-        return found_points
-
-
-    def range_search(self, point1, point2):
-        """
-        Search the QuadTree for points within the range [point1.x, point2.x] and
-        [point1.y, point2.y]. Return a list of the points found.
-        """
-        # Create a rectangle that represents the search range.
-        rect = Rectangle(0, 0, abs(point1.x - point2.x), abs(point1.y - point2.y))
-        rect.rx = min(point1.x, point2.x) + rect.w / 2
-        rect.ry = min(point1.y, point2.y) + rect.h / 2
-
-        # Use the existing search method to find points within the search range.
-        return self._search(rect)
-
+        return results
 
     
