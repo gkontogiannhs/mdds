@@ -1,7 +1,7 @@
 from lsh import LSH
 from lsh import kshingle, one_hot_encoding, jaccard, cosine_similarity
 
-from numpy import array
+from numpy import stack
 from pandas import read_csv
 
 if __name__ == "__main__":
@@ -11,17 +11,17 @@ if __name__ == "__main__":
 
     data = dataset['Education'].to_list()
 
-    k = 5 # shingle size step
+    k = 10 # shingle size step
 
     # create vocabulary with shingles        
     vocabulary = set().union(*[kshingle(sent, k) for sent in data])
 
     # one hot representation of each document
-    one_hot_matrix = array([one_hot_encoding(vocabulary, sent) for sent in data]).T
-
+    one_hot_matrix = stack([one_hot_encoding(vocabulary, sent) for sent in data]).T
+    
     # create LSH model providing the bands magnitute 
     # in fit hashes each column for each band of the sign matrix M to a hash table with k buckets
-    lsh = LSH(nfuncs=100, bands=20).fit(data=one_hot_matrix, buckets=1000)
+    lsh = LSH(nfuncs=100, bands=5).fit(data=one_hot_matrix, buckets=1000)
     
     # get candidates with similarity bigger than 60%
     actual_candidates = lsh.candidates(jaccard, similarity=.6)
