@@ -1,39 +1,3 @@
-import math
-import matplotlib.pyplot as plt
-
-
-def visualize_rtree(root_node):
-    fig, ax = plt.subplots()
-    visualize_node(root_node, ax)
-    plt.show()
-
-def visualize_node(node, ax):
-    x1, y1, x2, y2 = node.mbr.x1, node.mbr.y1, node.mbr.x2, node.mbr.y2
-    rect = plt.Rectangle((x1, y1), x2-x1, y2-y1, linewidth=1, edgecolor='r', facecolor='none')
-    ax.add_patch(rect)
-
-    if not node.is_leaf():
-        for child in node.children:
-            visualize_node(child, ax)
-
-
-class RTree:
-    def __init__(self, min_entries=2, max_entries=4):
-        self.min_entries = min_entries
-        self.max_entries = max_entries
-        self.root = MBRNode(self.min_entries, self.max_entries, parent=None)
-
-    def insert(self, point):
-        leaf = self.root.get_leaf_for_point(point)
-        leaf.add_point(point)
-
-        if leaf.is_overfull():
-            leaf.split()
-
-    def search(self, point):
-        return self.root.get_nodes_for_point(point)
-
-
 class MBRNode:
     def __init__(self, min_entries, max_entries, parent=None):
         self.min_entries = min_entries
@@ -43,15 +7,20 @@ class MBRNode:
         self.mbr = None
         self.parent = parent
 
+
     def add_point(self, point):
         self.points.append(point)
-        self.mbr = self.get_mbr()
+        # self.mbr = self.get_mbr()
+        self.update_mbr()
+
 
     def is_leaf(self):
         return not self.children
 
+
     def is_overfull(self):
         return len(self.points) > self.max_entries
+
 
     def get_leaf_for_point(self, point):
 
@@ -66,11 +35,13 @@ class MBRNode:
         else:
             return min(self.children, key=lambda node: node.get_mbr_enlargement(point)).get_leaf_for_point(point)
 
+
     def get_mbr_enlargement(self, point):
 
         if not self.mbr: return float('inf')
         else:
             return self.mbr.get_enlargement(Rectangle(point[0], point[1], point[0], point[1]))
+
 
     def get_nodes_for_point(self, point):
         if self.is_leaf():
@@ -87,6 +58,7 @@ class MBRNode:
         self.children.remove(old_child)
         self.children.append(new_child1)
         self.children.append(new_child2)
+        # self.update_mbr()
 
 
     def split(self):
@@ -99,12 +71,13 @@ class MBRNode:
             new_node2 = MBRNode(self.min_entries, self.max_entries, parent=self)
             new_node2.add_point(seeds[1])
 
-            self.children = [new_node1, new_node2]
-
             for point in self.points:
                 if point != seeds[0] and point != seeds[1]:
                     self.add_point_to_best_node(point, new_node1, new_node2)
             
+            # update new pointer children
+            self.children = [new_node1, new_node2]
+
             # remove points
             self.points = []
 
@@ -124,7 +97,7 @@ class MBRNode:
 
 
     def get_seeds(self):
-        max_waste = -1
+        max_waste = float('-inf')
         seeds = []
 
         for i in range(len(self.points)):
@@ -139,7 +112,7 @@ class MBRNode:
 
     def get_waste(self, point1, point2):
         combined_mbr = Rectangle(point1[0], point1[1], point1[0], point1[1]).combine(Rectangle(point2[0], point2[1], point2[0], point2[1]))
-        return combined_mbr.get_area() - Rectangle(point1[0], point1[1], point1[0], point1[1]).get_area() - Rectangle(point2[0], point2[1], point2[0], point2[1]).get_area()
+        return combined_mbr.get_area() # - Rectangle(point1[0], point1[1], point1[0], point1[1]).get_area() - Rectangle(point2[0], point2[1], 2*point2[0], 2*point2[1]).get_area())
 
     
     def get_mbr(self):
@@ -153,16 +126,30 @@ class MBRNode:
 
 
     def update_mbr(self):
-        self.mbr = self.get_mbr()
-        if self.parent:
-            self.parent.update_mbr()
+        
+        if self.is_leaf(): 
+            self.mbr = self.get_mbr()
+
+        else:
+
+            x1, y1, x2, y2 = self.children[0].mbr.x1, self.children[0].mbr.y1, self.children[0].mbr.x2, self.children[0].mbr.y2
+            for child in self.children:
+                x1, x2 = min(x1, child.mbr.x1), max(x2, child.mbr.x2)
+                y1, y2 = min(y1, child.mbr.y1), max(y2, child.mbr.y2)
+
+            self.mbr = Rectangle(x1, y1, x2, y2)
+
+            # upward parent forward
+            if self.parent:
+                self.parent.update_mbr()
        
 
 class Rectangle:
     def __init__(self, x1, y1, x2, y2):
-
-        self.x1, self.y1 = x1, y1
-        self.x2, self.y2 = x2, y2
+        self.x1 = min(x1, x2)
+        self.y1 = min(y1, y2)
+        self.x2 = max(x1, x2)
+        self.y2 = max(y1, y2)
         
     def get_area(self):
         return (self.x2 - self.x1) * (self.y2 - self.y1)
@@ -171,35 +158,56 @@ class Rectangle:
         return (self.x1 <= other.x2 and self.x2 >= other.x1 and
                 self.y1 <= other.y2 and self.y2 >= other.y1)
 
-
-    def combine(self, other_mbr):
-
-        x1 = min(self.x1, other_mbr.x1)
-        y1 = min(self.y1, other_mbr.y1)
-        x2 = max(self.x2, other_mbr.x2)
-        y2 = max(self.y2, other_mbr.y2)
-
+    def combine(self, other):
+        x1 = min(self.x1, other.x1)
+        y1 = min(self.y1, other.y1)
+        x2 = max(self.x2, other.x2)
+        y2 = max(self.y2, other.y2)
         return Rectangle(x1, y1, x2, y2)
 
-
-    def get_enlargement(self, other_mbr):
-        if not self.intersects(other_mbr):
-            return other_mbr.get_area()
+    def get_enlargement(self, other):
+        if self.intersects(other):
+            return 0
         else:
-            x1 = min(self.x1, other_mbr.x1)
-            y1 = min(self.y1, other_mbr.y1)
-            x2 = max(self.x2, other_mbr.x2)
-            y2 = max(self.y2, other_mbr.y2)
-
-            new_mbr = Rectangle(x1, y1, x2, y2)
-
-            # TO CHANGE
-            # new_mbr = self.combine(other_mbr)
-
-            return new_mbr.get_area() - self.get_area()
+            combined = self.combine(other)
+            return combined.get_area() - self.get_area()
     
-
     def contains_point(self, point):
         x, y = point
         return self.x1 <= x <= self.x2 and self.y1 <= y <= self.y2
         
+
+class RTree:
+    def __init__(self, min_entries=2, max_entries=5):
+        self.min_entries = min_entries
+        self.max_entries = max_entries
+        self.root = MBRNode(self.min_entries, self.max_entries, parent=None)
+
+    def insert(self, point):
+        leaf = self.root.get_leaf_for_point(point)
+        leaf.add_point(point)
+        
+        if leaf.is_overfull():
+            leaf.split()
+
+    def range_search(self, rectangle):
+        results = []
+        self._range_search(rectangle, self.root, results)
+        return results
+        
+    def _range_search(self, rectangle, node, results):
+        if node.is_leaf():
+            for point in node.points:
+                if rectangle.contains_point(point):
+                    results.append(point)
+            return
+
+        if node.mbr is not None and node.mbr.intersects(rectangle):
+            for child in node.children:
+                self._range_search(rectangle, child, results)
+                
+    def exists(self, point):
+        x, y = point
+        rectangle = Rectangle(x, y, x, y)
+
+        return point in self.range_search(rectangle)
