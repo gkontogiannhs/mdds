@@ -10,7 +10,6 @@ class MBRNode:
 
     def add_point(self, point):
         self.points.append(point)
-        # self.mbr = self.get_mbr()
         self.update_mbr()
 
 
@@ -38,7 +37,8 @@ class MBRNode:
 
     def get_mbr_enlargement(self, point):
 
-        if not self.mbr: return float('inf')
+        if not self.mbr: 
+            return float('inf')
         else:
             return self.mbr.get_enlargement(Rectangle(point[0], point[1], point[0], point[1]))
 
@@ -58,7 +58,7 @@ class MBRNode:
         self.children.remove(old_child)
         self.children.append(new_child1)
         self.children.append(new_child2)
-        # self.update_mbr()
+        self.update_mbr()
 
 
     def split(self):
@@ -97,52 +97,48 @@ class MBRNode:
 
 
     def get_seeds(self):
-        max_waste = float('-inf')
+
+        candidates = self.children if self.children else self.points
+
+        max_waste = -1
         seeds = []
 
-        for i in range(len(self.points)):
-            for j in range(i+1, len(self.points)):
-                waste = self.get_waste(self.points[i], self.points[j])
+        for i in range(len(candidates)):
+            for j in range(i+1, len(candidates)):
+                waste = self.get_waste(candidates[i], candidates[j])
                 if waste > max_waste:
                     max_waste = waste
-                    seeds = [self.points[i], self.points[j]]
+                    seeds = [candidates[i], candidates[j]]
 
         return seeds
 
 
-    def get_waste(self, point1, point2):
-        combined_mbr = Rectangle(point1[0], point1[1], point1[0], point1[1]).combine(Rectangle(point2[0], point2[1], point2[0], point2[1]))
-        return combined_mbr.get_area() # - Rectangle(point1[0], point1[1], point1[0], point1[1]).get_area() - Rectangle(point2[0], point2[1], 2*point2[0], 2*point2[1]).get_area())
+    def get_waste(self, c1, c2):
+        if isinstance(c1, tuple):
+            c1 = Rectangle(c1[0], c1[1], c1[0], c1[1])
+            c2 = Rectangle(c2[0], c2[1], c2[0], c2[1])
 
-    
-    def get_mbr(self):
-
-        if not self.points: return None
-
-        x_coords = [point[0] for point in self.points]
-        y_coords = [point[1] for point in self.points]
-
-        return Rectangle(min(x_coords), min(y_coords), max(x_coords), max(y_coords))
+        return c1.get_enlargement(c2)
 
 
     def update_mbr(self):
         
-        if self.is_leaf(): 
-            self.mbr = self.get_mbr()
+        if self.is_leaf():
+            x_coords = [point[0] for point in self.points]
+            y_coords = [point[1] for point in self.points]
+
+            x1, y1, x2, y2 = min(x_coords), min(y_coords), max(x_coords), max(y_coords)
 
         else:
+            x1, x2 = self.children[0].mbr.x1, self.children[0].mbr.x2
+            y1, y2 = self.children[0].mbr.y1, self.children[0].mbr.y2
 
-            x1, y1, x2, y2 = self.children[0].mbr.x1, self.children[0].mbr.y1, self.children[0].mbr.x2, self.children[0].mbr.y2
-            for child in self.children:
-                x1, x2 = min(x1, child.mbr.x1), max(x2, child.mbr.x2)
-                y1, y2 = min(y1, child.mbr.y1), max(y2, child.mbr.y2)
+        for child in self.children:
+            x1, x2 = min(x1, child.mbr.x1), max(x2, child.mbr.x2)
+            y1, y2 = min(y1, child.mbr.y1), max(y2, child.mbr.y2)
 
-            self.mbr = Rectangle(x1, y1, x2, y2)
+        self.mbr = Rectangle(x1, y1, x2, y2)
 
-            # upward parent forward
-            if self.parent:
-                self.parent.update_mbr()
-       
 
 class Rectangle:
     def __init__(self, x1, y1, x2, y2):
@@ -159,10 +155,12 @@ class Rectangle:
                 self.y1 <= other.y2 and self.y2 >= other.y1)
 
     def combine(self, other):
+
         x1 = min(self.x1, other.x1)
         y1 = min(self.y1, other.y1)
         x2 = max(self.x2, other.x2)
         y2 = max(self.y2, other.y2)
+
         return Rectangle(x1, y1, x2, y2)
 
     def get_enlargement(self, other):

@@ -6,7 +6,7 @@ if __name__ == '__main__':
 
     rtree = RTree()
 
-    N = 50
+    N = 200
     points = list(set([(randint(0, 24), randint(0, 20)) for _ in range(N)]))
     
     x1, x2 = 0, 14
@@ -36,3 +36,6 @@ if __name__ == '__main__':
 
     matched.sort(key=lambda p: p[0])
     print(matched)
+
+
+    print(set(matched) - set(r_results))
