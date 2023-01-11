@@ -6,11 +6,10 @@ if __name__ == '__main__':
 
     rtree = RTree()
 
-    N = 200
-    points = list(set([(randint(0, 24), randint(0, 20)) for _ in range(N)]))
-    
-    x1, x2 = 0, 14
-    y1, y2 = 0, 10
+    N = 10000
+    points = list(set([(randint(0, 3000), randint(0, 3000)) for _ in range(N)]))
+    x1, x2 = 10, 90
+    y1, y2 = 20, 100
 
     r_results = []
     for point in points:
@@ -18,24 +17,24 @@ if __name__ == '__main__':
             r_results += [point]
 
     r_results.sort(key=lambda p: p[0])
-    print("Naive check:")
-    print(r_results)
+    print("Naive check:", str(r_results))
 
 
     # insert points
     for point in points: rtree.insert(point)
     
-    idx = randint(0, N-5)
-    print("Searching for:", points[idx])
+    idx = randint(0, N)
 
-    print("Exists:")
-    print(rtree.exists(points[idx]))
-
-    print("Ranges")
     matched = rtree.range_search(Rectangle(x1, y1, x2, y2))
-
     matched.sort(key=lambda p: p[0])
-    print(matched)
+    print("Range query:", str(matched))
 
 
-    print(set(matched) - set(r_results))
+    print("Missed out:" , str(set(r_results) - set(matched)))
+
+    print("Searching for:", points[idx])
+    print("Exists:", str(rtree.exists(points[idx])))
+
+    print("Deleting node: ", str(points[idx]))
+    rtree.delete(points[idx])
+    print("Exists:", str(rtree.exists(points[idx])))

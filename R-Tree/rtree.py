@@ -61,26 +61,56 @@ class MBRNode:
         self.update_mbr()
 
 
-    def split(self):
+    def linear_split(self):
+        if self.is_leaf():
+            # Divide the overflowing leaf node into two groups:
+            # group1 will contain roughly half of the entries
+            # group2 will contain the remaining entries
+            group1, group2 = self.divide_into_two_groups()
+            
+            # Create two new leaf nodes from the two groups
+            new_node1 = MBRNode(self.min_entries, self.max_entries, parent=self)
+            new_node1.points = group1
+            new_node2 = MBRNode(self.min_entries, self.max_entries, parent=self)
+            new_node2.points = group2
+            
+            # Update the parent's children list
+            if self.parent:
+                self.parent.update_children(self, new_node1, new_node2)
+
+
+    def divide_into_two_groups(self):
+        """Divides the overflowing leaf node into two groups"""
+        # Sort the points by their x-coordinates
+        self.points.sort(key=lambda point: point[0])
+        # Calculate the split index
+        median = len(self.points) // 2
+        # Divide the points into two groups
+        group1 = self.points[:median]
+        group2 = self.points[median+1:]
+        return group1, group2
+
+
+    def quadratic_split(self):
         if self.is_leaf():
             seeds = self.get_seeds()
-
+            
             new_node1 = MBRNode(self.min_entries, self.max_entries, parent=self)
             new_node1.add_point(seeds[0])
-
+            
             new_node2 = MBRNode(self.min_entries, self.max_entries, parent=self)
             new_node2.add_point(seeds[1])
-
-            for point in self.points:
-                if point != seeds[0] and point != seeds[1]:
-                    self.add_point_to_best_node(point, new_node1, new_node2)
             
-            # update new pointer children
+            remaining_points = [point for point in self.points if point != seeds[0] and point != seeds[1]]
+            
+            while len(remaining_points) > 0:
+                current_point = remaining_points.pop(0)
+                chosen_node = min(new_node1, new_node2, key=lambda node: node.get_mbr_enlargement(current_point))
+                chosen_node.add_point(current_point)
+            
             self.children = [new_node1, new_node2]
-
-            # remove points
             self.points = []
-
+            
             if self.parent is not None:
                 self.parent.update_children(self, new_node1, new_node2)
                 self.parent.update_mbr()
@@ -118,7 +148,9 @@ class MBRNode:
             c1 = Rectangle(c1[0], c1[1], c1[0], c1[1])
             c2 = Rectangle(c2[0], c2[1], c2[0], c2[1])
 
-        return c1.get_enlargement(c2)
+        combined_rect = c1.combine(c2)
+        return combined_rect.get_area() - c1.get_area() - c2.get_area()
+        # return c1.get_enlargement(c2)
 
 
     def update_mbr(self):
@@ -138,6 +170,22 @@ class MBRNode:
             y1, y2 = min(y1, child.mbr.y1), max(y2, child.mbr.y2)
 
         self.mbr = Rectangle(x1, y1, x2, y2)
+
+
+    def combine_with_siblings(self):
+        if self.parent is None:
+            return
+        parent = self.parent
+        if len(parent.children) < 2 * self.min_entries:
+            # Combine this node with all its siblings
+            parent.children = [child for child in parent.children if child != self]
+            for sibling in parent.children:
+                for point in sibling.points:
+                    self.add_point(point)
+                for child in sibling.children:
+                    self.children.append(child)
+            parent.update_mbr()
+            parent.combine_with_siblings()
 
 
 class Rectangle:
@@ -176,7 +224,7 @@ class Rectangle:
         
 
 class RTree:
-    def __init__(self, min_entries=2, max_entries=5):
+    def __init__(self, min_entries=2, max_entries=4):
         self.min_entries = min_entries
         self.max_entries = max_entries
         self.root = MBRNode(self.min_entries, self.max_entries, parent=None)
@@ -186,7 +234,10 @@ class RTree:
         leaf.add_point(point)
         
         if leaf.is_overfull():
-            leaf.split()
+            leaf.linear_split()
+
+        elif len(leaf.points) < leaf.min_entries:
+            leaf.combine_with_siblings()
 
     def range_search(self, rectangle):
         results = []
@@ -209,3 +260,70 @@ class RTree:
         rectangle = Rectangle(x, y, x, y)
 
         return point in self.range_search(rectangle)
+
+
+    def delete(self, point):
+        """
+        This delete method takes in a point and removes it from the tree. It first finds the leaf node(s)
+        that contain the point and then checks if that node is now underfull. If it is, the method condenses 
+        the tree by removing the underfull nodes and reinserting their points and children until the tree is balanced again.
+        It also updates the mbrs all the way up to the root.
+        """
+        nodes = self.root.get_nodes_for_point(point)
+        for node in nodes:
+            if point in node.points:
+                node.points.remove(point)
+                if node.is_leaf() and len(node.points) < self.min_entries:
+                    self.condense_tree(node)
+                break
+
+        if not nodes: return 
+        self.update_mbrs_from_leaf(nodes[0])
+    
+    def condense_tree(self, leaf):
+        nodes = [leaf]
+        while leaf.parent is not None:
+            parent = leaf.parent
+            parent.children.remove(leaf)
+            if parent.is_leaf():
+                if len(parent.points) >= self.min_entries:
+                    break
+                else:
+                    leaf = parent
+                    nodes.append(leaf)
+            else:
+                if len(parent.children) >= self.min_entries:
+                    break
+                else:
+                    leaf = parent
+                    nodes.append(leaf)
+        for node in nodes:
+            if node.parent is not None:
+                node.parent.children.remove(node)
+            if node.is_leaf():
+                self.leaf_list.remove(node)
+        self.reinsert_nodes(nodes)
+        
+    def reinsert_nodes(self, nodes):
+        for node in nodes:
+            if node.is_leaf():
+                for point in node.points:
+                    self.insert(point)
+            else:
+                for child in node.children:
+                    self.insert(child)
+                    
+    def update_mbrs_from_leaf(self, leaf):
+        while leaf.parent is not None:
+            leaf.parent.mbr = self.get_mbr_from_children(leaf.parent)
+            leaf = leaf.parent
+
+    def get_mbr_from_children(self, node):
+        if not node.children:
+            return None
+        else:
+            x1, y1, x2, y2 = node.children[0].mbr.x1, node.children[0].mbr.y1, node.children[0].mbr.x2, node.children[0].mbr.y2
+            for child in node.children:
+                x1, x2 = min(x1, child.mbr.x1), max(x2, child.mbr.x2)
+                y1, y2 = min(y1, child.mbr.y1), max(y2, child.mbr.y2)
+            return Rectangle(x1, y1, x2, y2)
