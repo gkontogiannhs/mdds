@@ -1,3 +1,22 @@
+class Point:
+    def __init__(self, x, y, payload=None):
+        self.x = x
+        self.y = y
+        self.payload = payload
+
+    def __getitem__(self, index):
+        if index: return self.y
+        else: return self.x
+  
+        
+    def __repr__(self):
+        return f'{self.x, self.y}: {repr(self.payload)}'
+
+
+    def __str__(self):
+        return f'({self.x}, {self.y})'
+
+
 class MBRNode:
     def __init__(self, min_entries, max_entries, parent=None):
         self.min_entries = min_entries
@@ -219,8 +238,7 @@ class Rectangle:
             return combined.get_area() - self.get_area()
     
     def contains_point(self, point):
-        x, y = point
-        return self.x1 <= x <= self.x2 and self.y1 <= y <= self.y2
+        return self.x1 <= point.x <= self.x2 and self.y1 <= point.y <= self.y2
         
 
 class RTree:
@@ -256,7 +274,7 @@ class RTree:
                 self._range_search(rectangle, child, results)
                 
     def exists(self, point):
-        x, y = point
+        x, y = point.x, point.y
         rectangle = Rectangle(x, y, x, y)
 
         return point in self.range_search(rectangle)

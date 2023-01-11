@@ -1,21 +1,16 @@
-from kdtree import KDTree
+from kdtree import KDTree, Point
 from pandas import read_excel
 from os.path import expanduser
 from random import randint
 
 import string
-
 import random
 
-if __name__ == "__main__":
-    
-    path = f"{expanduser('~')}/Desktop/Multi-Dimensional-DS/List_of_computer_scientists.xlsx"
 
-    # points = read_excel(path)
-    # points = [tuple(x) for x in points.to_numpy()][:50]
-    # points = [(randint(0, 100), randint(0, 100), [randint(0, 1) for _ in range(4)]) for _ in range(7)]
-    points = [(randint(0, 100), randint(0, 100), random.choice(string.ascii_letters)) for _ in range(200)]
-    print(points)
+if __name__ == "__main__":
+
+    N = 500
+    points = [Point(randint(0, 100), randint(0, 100), random.choice(string.ascii_letters)) for _ in range(N)]
 
     query = ((20, 60), (30, 70))
     kdtree = KDTree(points, k=2)
@@ -24,10 +19,10 @@ if __name__ == "__main__":
     for point in points:
         if query[0][0] <= point[0] <= query[0][1] and query[1][0] <= point[1] <= query[1][1]:
             temp.append(point)
-    temp.sort()
+    temp.sort(key=lambda p: p[0])
     print(temp)
 
     results = kdtree.range_search(query=query)
-    results.sort()
+    results.sort(key=lambda p: p[0])
     print(results)
     # query = ((20, 30), (10, 20))

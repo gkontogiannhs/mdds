@@ -6,8 +6,9 @@ if __name__ == '__main__':
 
     rtree = RTree()
 
-    N = 10000
-    points = list(set([(randint(0, 3000), randint(0, 3000)) for _ in range(N)]))
+    N = 2000
+    points = [Point(randint(0, 3000), randint(0, 3000)) for _ in range(N)]
+
     x1, x2 = 10, 90
     y1, y2 = 20, 100
 

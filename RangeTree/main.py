@@ -1,10 +1,10 @@
-from rangetree import RangeTree1D, RangeTree2D
-
+from rangetree import RangeTree1D, RangeTree2D, Point
 from random import randint
+
 
 if __name__ == '__main__':
     # points = [('george', 2, [0, 1, 1, 0]), ('smith', 4, [0, 1, 1, 0]), ('sofi', 5, [0, 1, 1, 0]), ('jannete', 3, [0, 1, 1, 0])]
-    points = [(randint(0, 100), randint(0, 100)) for _ in range(50)]
+    points = [Point(randint(0, 100), randint(0, 100)) for _ in range(50)]
     print("points:")
     print(points)
     # x_range = ('a', 'k')
@@ -31,7 +31,7 @@ if __name__ == '__main__':
 
     # temp.sort()
     print("Silly")
-    temp.sort()
+    temp.sort(key=lambda p: p[0])
     print(temp)
     print()
 
@@ -40,9 +40,9 @@ if __name__ == '__main__':
     tree = RangeTree2D(points)
 
     # Query the tree for all points in the range (5, 11)
-    result = tree.query(x_range=x_range, y_range=y_range)
+    result = tree.range_search(x_range=x_range, y_range=y_range)
     print("RangeTree")
-    result.sort()
+    result.sort(key=lambda p: p[0])
     print(result)  # Output: [(6,), (7,), (8,), (9,), (10,)]
 
     # Insert a new point into the tree
