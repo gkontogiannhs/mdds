@@ -1,4 +1,4 @@
-from numpy import array, zeros, dot, count_nonzero
+from numpy import array, zeros, dot, count_nonzero, empty, where
 from numpy.linalg import norm
 
 from random import shuffle # in place
@@ -17,8 +17,8 @@ def kshingle(text, k):
 
 def one_hot_encoding(vocab, sent):
 
-    one_hot = zeros(len(vocab), dtype=int)
-
+    one_hot = zeros(shape=(len(vocab),), dtype=int)
+    
     for i, sh in enumerate(vocab):
         if sh in sent: one_hot[i] = 1
 
@@ -44,6 +44,9 @@ class MinHash:
 
         # store dimensionality
         self.shape = one_hot_matrix.shape
+        
+        # vertical dimmensionality of signature M
+        self.nfuncs = nfuncs
 
         # create hash functions
         self.functions = self.build_functions(nfuncs)
@@ -71,40 +74,31 @@ class MinHash:
 
     # create hash method takes as input a one hot encoded vector 
     # and produces a compressed vector signature for it
-    def signature_matrix(self):
+    def _signature_matrix(self):
+        
+        # sign_matrix = []
+        sign_matrix = empty(shape=(self.nfuncs, self.shape[1]), dtype=int)
 
-        sign_matrix = []
+        for i, func in enumerate(self.functions):
 
-        # for each permutation
-        for func in self.functions:
-
-            # signature vector
             perm_sign = zeros(self.shape[1])
 
-            # for each permutation index in orer
-            for i in range(1, self.shape[0]+1):
+            j = 1
+            while (perm_sign == 0).any():
+
+                idx = func.index(j)
+                row = self.one_hot_matrix[idx]
+
+                mask = (perm_sign == 0) & (row == 1)
+                perm_sign[mask] = j
+
+                j += 1
                 
-                if not count_nonzero(perm_sign==0):
-                    break
+            sign_matrix[i] = perm_sign
 
-                # find suffled index
-                idx = func.index(i)
+        self.sign_matrix = sign_matrix[:]
 
-                # get permutation row 
-                row = self.one_hot_matrix[idx-1]
-
-                # for each elemnt in row
-                for j, value in enumerate(row):
-                    
-                    # if specific elemnt is 1 and index is not taken
-                    if value == 1 and not perm_sign[j]:
-                        perm_sign[j] = idx
-
-            sign_matrix += [perm_sign]
-
-        self.sign_matrix = array(sign_matrix)
-        
-        return self.sign_matrix
+        return sign_matrix
 
 
 class LSH:
@@ -137,17 +131,17 @@ class LSH:
         bands = [sm[i:i+r] for i in range(0, sm.shape[0], r)]
         
         return array(bands)
-
+    
 
     # Hash each band of the matrix M to a hash table with k buckets
     def fit(self, data, buckets):
         
         # create and define as class attribute minhash object
         self.hash_mehod = MinHash(data, nfuncs=self.nfuncs)
-        
+       
         # each column represent the signature of each document
-        sign_matrix = self.hash_mehod.signature_matrix()
-
+        sign_matrix = self.hash_mehod._signature_matrix()
+        
         # Initialize a list to store the hash tables
         hash_tables = []
 
@@ -204,17 +198,18 @@ class LSH:
 
         # get reduced candidates 
         cands = self._find_candidates()
-
+        print(cands)
         # each document is represented by a column
         one_hot_matrix = self.hash_mehod.one_hot_matrix
-
+        
         actual_cands = {}
         
         # filter by similarity 
         for c1, c2 in cands:
-            cos_sim = sim_function(one_hot_matrix[:, c1], one_hot_matrix[:, c2])
-            if cos_sim >= similarity: 
-                actual_cands[c1, c2] = cos_sim 
+            # print(one_hot_matrix[:, c1], one_hot_matrix[:, c2])
+            sim = sim_function(one_hot_matrix[:, c1], one_hot_matrix[:, c2])
+            if sim >= similarity: 
+                actual_cands[c1, c2] = sim 
 
         return actual_cands      
         # return [(c1, c2) for (c1, c2) in cands if cosine_similarity(one_hot_matrix[:, c1], one_hot_matrix[:, c2]) >= sim]
