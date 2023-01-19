@@ -41,9 +41,26 @@ if __name__ == "__main__":
 
     range_tree = RangeTree2D(points)
     # x_range = (let_to_int['a'], let_to_int['z'])
-    retrieved = range_tree.range_search(x_range=('A', 'G'), y_range=(0, 5))
-    print(f"Range Retrieved: {len(retrieved)}")
+    range_tree_retrieved = range_tree.range_search(x_range=('A', 'G'), y_range=(0, 5))
+    print(f"Range Tree Retrieved: {len(range_tree_retrieved)}")
+    
+    kdtree = KDTree(points, k=2)
+    kdtree_tree_retrieved = kdtree.range_search(query=(('A', 'G'), (0, 5)))
+    print(f"KDTree Retrieved: {len(kdtree_tree_retrieved)}")
 
+    # build quad tree with max 4 points per tile
+    qtree = QuadTree(points=points, n=4)
+
+    # define range of query
+    point1, point2 = Point('A', 0), Point('G', 5)
+    # convert to rectangle tile
+    search_region = qtree.bounds_to_rect(point1, point2)
+
+    # make query
+    quad_tree_retrieved = qtree.range_search(search_region)
+    print(f"KDTree Retrieved: {len(quad_tree_retrieved)}")
+
+    """
     one_hot_matrix = stack([point.payload for point in retrieved]).T
     print(one_hot_matrix.shape)
     
@@ -62,3 +79,4 @@ if __name__ == "__main__":
         print()
 
     print(len(actual_candidates))
+    """
