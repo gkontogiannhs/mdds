@@ -1,18 +1,19 @@
-from lsh import LSH, MinHash
-from lsh import kshingle, one_hot_encoding, jaccard, cosine_similarity
-
-from numpy import stack, where
+from lsh import LSH
+from helpers import *
+from numpy import stack
 from pandas import read_csv
+
 
 if __name__ == "__main__":
 
     # load datasets
-    dataset = read_csv('List_of_computer_scientists.csv')
+    dataset = read_csv('..\List_of_computer_scientists.csv')
 
+    # data to hash
     data = dataset['Education'].to_list()
-
-    k = 2 # shingle size step
-
+    
+    # shingle size step
+    k = 2
 
     # create vocabulary with shingles        
     vocabulary = set().union(*[kshingle(sent, k) for sent in data])
@@ -22,19 +23,10 @@ if __name__ == "__main__":
 
     # create LSH model providing the bands magnitute 
     # in fit hashes each column for each band of the sign matrix M to a hash table with k buckets
-    lsh = LSH(nfuncs=50, bands=5).fit(data=one_hot_matrix, buckets=1000)
-    # print(MinHash(one_hot_matrix, nfuncs=50)._signature_matrix())
+    lsh = LSH(nfuncs=50, bands=5, radius=0.7).fit(data=one_hot_matrix, buckets=100)
 
     # get candidates with similarity bigger than 60%
-    actual_candidates = lsh.candidates(cosine_similarity, similarity=.6)
+    actual_candidates = lsh.candidates(sim_function=cosine_similarity)
     
-    for cand_pair, sim in actual_candidates.items():
-        print(f"Candidate pair {cand_pair}, similarity: {sim}")
-        print(data[cand_pair[0]])
-        # print(one_hot_matrix[:, cand_pair[0]])
-        print()
-        print(data[cand_pair[1]])
-        # print(one_hot_matrix[:, cand_pair[1]])
-        print()
+    print(actual_candidates)
 
-    print(len(actual_candidates))

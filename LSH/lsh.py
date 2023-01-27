@@ -1,40 +1,58 @@
-from numpy import array, zeros, dot, count_nonzero, empty, where
-from numpy.linalg import norm
-
-from random import shuffle # in place
+from numpy import array, zeros, empty
+from random import shuffle 
 from itertools import combinations
+from copy import deepcopy
+from helpers import cosine_similarity, jaccard
 
 
-def kshingle(text, k):
-
-    shingle_set = []
-
-    for i in range(len(text) - k + 1):
-        shingle_set += [text[i:i+k]]
-    
-    return set(shingle_set)
+"""
+The above code consists of two classes: MinHash and LSH. The MinHash class is used to generate a signature matrix
+of an input one-hot encoded matrix, and the LSH class is used to perform approximate nearest neighbor search on the
+signature matrix using Locality Sensitive Hashing (LSH).
 
 
-def one_hot_encoding(vocab, sent):
+The MinHash class has the following methods and attributes:
 
-    one_hot = zeros(shape=(len(vocab),), dtype=int)
-    
-    for i, sh in enumerate(vocab):
-        if sh in sent: one_hot[i] = 1
+    __init__(self, one_hot_matrix, nfuncs): 
+        This method is the constructor of the class. It initializes the object with the input one-hot encoded matrix, the number
+        of hash functions (nfuncs), and the signature matrix (sign_matrix) which is initially set to None.
 
-    return one_hot
+    _hash(self): 
+        This method creates a list of indices of the rows of the one-hot encoded matrix in a random order.
+        build_functions(self, nfuncs): This method builds nfuncs number of hash functions by calling the _hash() method.
+
+    _signature_matrix(self):
+        This method creates the signature matrix of the input one-hot encoded matrix using the hash functions created by
+        the build_functions() method. It assigns the signature matrix to the sign_matrix attribute of the class.
+        The method returns the signature matrix.
 
 
-def jaccard(v, u):
-    return round(len(set(v) & set(u)) / len(set(v) | set(u)), 3)
-    
+The LSH class has the following methods and attributes:
 
-def cosine_similarity(u, v):
-    if (u == 0).all() | (v == 0).all():
-        return 0.
-    else:
-        return round(dot(u,v) / (norm(u)*norm(v)), 3)
+    __init__(self, nfuncs, bands, radius=1): 
+        This method is the constructor of the class. It initializes the object with the number of hash functions (nfuncs), the number of
+        bands (bands) used to partition the signature matrix, and the radius (radius) used to search for similar columns.
+        The attribute hash_tables is initially set to None.
 
+    partition_into_bands(self, sm):
+        This method partitions the signature matrix (sm) into bands number of bands.
+
+    fit(self, data, buckets):
+        This method is used to fit the LSH model to the input data. It creates an object of the MinHash class with
+        the input data and nfuncs number of hash functions. It then creates the signature matrix using the _signature_matrix()
+        method from the MinHash class. It then partitions the signature matrix into bands and uses the hash values of the columns
+        of each band to create a list of hash tables with buckets number of buckets.
+
+    _find_candidates(self):
+        This method finds candidate column pairs for the input matrix by looking for columns that have the same hash value
+        in the same band of the signature matrix (items in same buckets). It returns a set of candidate column pairs.
+
+    candidates(self, sim_function=cosine_similarity):
+        This method finds similar columns in the input matrix based on the similarity function passed as an argument.
+        By default, it uses the cosine similarity function. It uses the _find_candidates() method to find the candidate column pairs,
+        then it filters false positives by their similarity and return the columns that have a similarity greater
+        than the radius specified in the constructor.
+"""
 
 class MinHash:
     def __init__(self, one_hot_matrix, nfuncs):
@@ -68,7 +86,6 @@ class MinHash:
 
     # basically, it returns a 2D list of indices permutations
     def build_functions(self, nfuncs):
-
         return [self._hash() for _ in range(nfuncs)]
 
 
@@ -95,8 +112,8 @@ class MinHash:
                 j += 1
                 
             sign_matrix[i] = perm_sign
-
-        self.sign_matrix = sign_matrix[:]
+        
+        self.sign_matrix = deepcopy(sign_matrix)
 
         return sign_matrix
 
@@ -186,30 +203,30 @@ class LSH:
 
           # If there is more than one column in the bucket
           if len(bucket) > 1:
-
             # Add all pairs of columns in the bucket to the candidates set
             candidates.update(combinations(bucket, 2))
-
+            
       # Return the candidate column pairs
       return candidates
 
 
-    def candidates(self, sim_function=cosine_similarity, similarity=0.5):
+    def candidates(self, sim_function=cosine_similarity):
 
         # get reduced candidates 
         cands = self._find_candidates()
-        print(cands)
+
         # each document is represented by a column
         one_hot_matrix = self.hash_mehod.one_hot_matrix
         
-        actual_cands = {}
-        
+        actual_cands = {}              
+
         # filter by similarity 
         for c1, c2 in cands:
-            # print(one_hot_matrix[:, c1], one_hot_matrix[:, c2])
+            # get similarity
             sim = sim_function(one_hot_matrix[:, c1], one_hot_matrix[:, c2])
-            if sim >= similarity: 
+            # if above given threshold
+            if sim >= self.radius: 
                 actual_cands[c1, c2] = sim 
 
         return actual_cands      
-        # return [(c1, c2) for (c1, c2) in cands if cosine_similarity(one_hot_matrix[:, c1], one_hot_matrix[:, c2]) >= sim]
+      

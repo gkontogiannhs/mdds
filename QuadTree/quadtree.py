@@ -20,22 +20,6 @@
     You can also use this tree to perform the spatial queries like range queries, nearest neighbour search and more,
     but that depends on how you want to use the tree structure.
 """
-
-class Point:
-    def __init__(self, x, y, payload=None):
-        self.x = x
-        self.y = y
-        self.payload = payload
-
-
-    def __repr__(self):
-        return f'{self.x, self.y}: {repr(self.payload)}'
-
-
-    def __str__(self):
-        return '({:.2f}, {:.2f})'.format(self.x, self.y)
-
-
 class Rectangle:
     def __init__(self, rx, ry, w, h):
         self.rx = rx
