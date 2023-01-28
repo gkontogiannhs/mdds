@@ -328,20 +328,22 @@ class RTree:
         self.max_entries = max_entries
         self.root = MBRNode(self.min_entries, self.max_entries, parent=None)
 
-    def insert(self, point):
+    def insert(self, points):
         """
-            This method takes a point as an argument, and finds the leaf node of the tree where the point should be inserted.
+            This method takes a list of points as an argument, and finds the leaf node of the tree where the point should be inserted.
             It adds the point to that leaf node, and if the leaf node becomes overfull, it splits the node to maintain the balance of the tree.
             If the leaf node has less than the minimum number of entries, it combines the node with its siblings.
         """
-        leaf = self.root.get_leaf_for_point(point)
-        leaf.add_point(point)
-        
-        if leaf.is_overfull():
-            leaf.linear_split()
+        for point in points:
+            
+            leaf = self.root.get_leaf_for_point(point)
+            leaf.add_point(point)
+            
+            if leaf.is_overfull():
+                leaf.linear_split()
 
-        elif len(leaf.points) < leaf.min_entries:
-            leaf.combine_with_siblings()
+            elif len(leaf.points) < leaf.min_entries:
+                leaf.combine_with_siblings()
 
 
     def range_search(self, rectangle):
