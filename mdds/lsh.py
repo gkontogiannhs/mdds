@@ -2,8 +2,7 @@ from numpy import array, zeros, empty
 from random import shuffle 
 from itertools import combinations
 from copy import deepcopy
-from helpers import cosine_similarity, jaccard
-
+from mdds.helpers import cosine_similarity
 
 """
 The above code consists of two classes: MinHash and LSH. The MinHash class is used to generate a signature matrix
@@ -101,8 +100,9 @@ class MinHash:
             perm_sign = zeros(self.shape[1])
 
             j = 1
+            
             while (perm_sign == 0).any():
-
+                
                 idx = func.index(j)
                 row = self.one_hot_matrix[idx]
 

@@ -1,5 +1,6 @@
-from lsh import LSH
-from helpers import *
+from mdds.helpers import *
+from mdds.lsh import LSH
+
 from numpy import stack
 from pandas import read_csv
 
@@ -7,7 +8,7 @@ from pandas import read_csv
 if __name__ == "__main__":
 
     # load datasets
-    dataset = read_csv('..\List_of_computer_scientists.csv')
+    dataset = read_csv('List_of_computer_scientists.csv')
 
     # data to hash
     data = dataset['Education'].to_list()

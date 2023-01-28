@@ -1,24 +1,33 @@
+"""
+    This is an implementation of a QuadTree data structure, which is a type of space-partitioning data structure that is used
+    to organize points in two-dimensional space.
+
+    The QuadTree is a recursive data structure that subdivides a space into four quadrants,
+    each of which can contain a set of points. Each quadrant can also be further divided into four sub-quadrants, and so on,
+    until a maximum capacity of points is reached.
+    
+    The Rectangle class is used to represent the boundaries of the quadrants and the QuadTree class is used to manage the structure
+    of the quadrants and the points they contain. 
+"""
+
+
 """"
-    The above code is an implementation of a QuadTree data structure in Python, along with related classes like Point, Rectangle, and QuadTree.
+The QuadTree class takes an optional tile argument, which is a Rectangle object representing the boundary of the current node,
+and an optional points argument, which is a list of Point objects to insert into the tree. The n argument specifies
+the maximum number of points that a tile can contain before it needs to be divided into four sub-tiles.
 
-    The Point class is used to represent a point in two-dimensional space, with x and y coordinates and an optional payload attribute.
-    The __repr__ and __str__ methods provide a string representation of the point in the format (x, y) and payload if provided.
+The QuadTree class has a number of methods for interacting with the tree:
 
-    The Rectangle class is used to represent a rectangle with a given center point (rx, ry), width (w) and height (h).
-    The contains method is used to check if a given point is within the boundaries of the rectangle and intersects method is used to check
-    if a given rectangle intersects with another rectangle.
+    The __init__ method initializes the tree and optionally subdivides it to insert the given points.
+    The bounds_to_rect method takes in two Point objects and returns a rectangle representing the boundary of the points.
+    The subdivide method divides the current tile into four sub-tiles, creating new QuadTree instances for each.
+    The insert method inserts a point into the tree by first checking if it lies within the boundary of the current tile. If there is space in the current tile and the point lies within the boundary, the point is added to the current tile. If the tile is already full, and has not been subdivided, it subdivides the tile and recursively insert the point into one of the subtiles.
+    The calculate_rectangle method calculate the rectangle that encloses all the points passed to the QuadTree.
+    The Rectangle class has a number of methods for interacting with the rectangle
 
-    The QuadTree class is the main class and is used to represent the QuadTree data structure. It has a capacity of n points,
-    points array which will keep track of points, a tile attribute which is a Rectangle object and divided attribute which will keep
-    track if the tree is divided or not. The insert method is used to insert a point into the tree. If the point does not lie inside
-    the boundary of the tile or if the capacity of the current tile is already full, then it subdivides the tile into four sub-tiles,
-    each of which can be further divided as necessary.
-
-    This code represents the basic functionality of QuadTree and how to use it to divide the two-dimensional space into smaller regions
-    and quickly find points within a specific region. However, you can add more functionality to it as per your requirements.
-
-    You can also use this tree to perform the spatial queries like range queries, nearest neighbour search and more,
-    but that depends on how you want to use the tree structure.
+    __init__ takes in the position x,y and the width and height of the rectangle
+    contains checks if a point lies within the rectangle boundaries
+    intersects checks if the rectangle intersects with another rectangle
 """
 class Rectangle:
     def __init__(self, rx, ry, w, h):
@@ -38,7 +47,7 @@ class Rectangle:
 
     # check if point is within tile boundaries
     def contains(self, point):
-
+        """ Return True if point in quadrant """
         return (point.x >= self.rx - self.w and
                 point.x <= self.rx + self.w and
                 point.y >= self.ry - self.h and
@@ -46,9 +55,7 @@ class Rectangle:
 
 
     def intersects(self, rect):
-        """
-        Return True if this rectangle intersects with the given rectangle.
-        """
+        """ Return True if this rectangle intersects with the given rectangle. """
         return (self.rx - self.w <= rect.rx + rect.w or
                 self.rx + self.w >= rect.rx - rect.w or
                 self.ry - self.h <= rect.ry + rect.h or
@@ -78,9 +85,7 @@ class QuadTree:
 
 
     def subdivide(self):
-        """
-            Divide the tile into four sub-tiles.
-        """
+        """ Divide the tile into four sub-tiles. """
         rx, ry = self.tile.rx, self.tile.ry
         w, h = self.tile.w, self.tile.h
 
@@ -155,6 +160,32 @@ class QuadTree:
                     self.southwest.search(point))
 
 
+    def range_search(self, rect):
+        """
+        Return a list of all points in the Quadtree that lie within the given rectangle.
+        """
+
+        results = []
+        # If the query rectangle does not intersect the tile, return an empty list
+
+        if not self.tile.intersects(rect):
+            return results
+
+        # Check the points in this node
+        for point in self.points:
+            if rect.contains(point):
+                results.append(point)
+
+        # If the node has been divided, search the sub-regions
+        if self.divided:
+            results += self.northwest.range_search(rect)
+            results += self.northeast.range_search(rect)
+            results += self.southeast.range_search(rect)
+            results += self.southwest.range_search(rect)
+
+        return results
+
+
     def search_radius(self, point, radius):
         from math import hypot
         """
@@ -181,30 +212,5 @@ class QuadTree:
             results += self.southwest.search_radius(point, radius)
 
             return results
-
-
-    def range_search(self, rect):
-        """
-        Return a list of all points in the Quadtree that lie within the given rectangle.
-        """
-
-        results = []
-        # If the query rectangle does not intersect the tile, return an empty list
-        if not self.tile.intersects(rect):
-            return results
-
-        # Check the points in this node
-        for point in self.points:
-            if rect.contains(point):
-                results.append(point)
-
-        # If the node has been divided, search the sub-regions
-        if self.divided:
-            results += self.northwest.range_search(rect)
-            results += self.northeast.range_search(rect)
-            results += self.southeast.range_search(rect)
-            results += self.southwest.range_search(rect)
-
-        return results
 
     

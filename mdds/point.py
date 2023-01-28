@@ -1,9 +1,9 @@
 class Point:
-    def __init__(self, x, y, edu=None, payload=None):
+    def __init__(self, x, y, payload=None, id=None):
         self.x = x
         self.y = y
-        self.education = edu
         self.payload = payload
+        self.id = id
 
     def __getitem__(self, index):
         if index: return self.y
@@ -11,7 +11,7 @@ class Point:
   
         
     def __repr__(self):
-        return f'{self.x, self.y}: {repr(self.payload)}'
+        return f'{self.x, self.y}: {repr(self.id)}'
 
 
     def __str__(self):
