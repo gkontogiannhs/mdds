@@ -7,7 +7,6 @@ from mdds.trees.rtree import RTree, Rectangle
 from mdds.point import Point
 from pandas import read_csv
 from numpy import stack
-from time import time
 
 
 if __name__ == "__main__":
@@ -49,7 +48,7 @@ if __name__ == "__main__":
     ds_space = []
     total_time = []
     # number of exp iterations
-    n = 10
+    n = 1000
     from timeit import timeit
     from time import time
     from sys import getsizeof
