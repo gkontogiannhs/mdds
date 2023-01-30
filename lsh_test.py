@@ -24,10 +24,16 @@ if __name__ == "__main__":
 
     # create LSH model providing the bands magnitute 
     # in fit hashes each column for each band of the sign matrix M to a hash table with k buckets
-    lsh = LSH(nfuncs=50, bands=5, radius=0.7).fit(data=one_hot_matrix, buckets=100)
+    lsh = LSH(nfuncs=50, bands=5).fit(data=one_hot_matrix, num_buckets=1000)
 
-    # get candidates with similarity bigger than 60%
-    actual_candidates = lsh.candidates(sim_function=cosine_similarity)
+    # get neigbors with similarity bigger than 60%
+    actual_neigbors = lsh.neigbors(similar=0.65, dist_func=cosine_similarity)
+    print(actual_neigbors)
+
+    import numpy as np
+    q_vec = np.random.choice(2, len(vocabulary))
     
-    print(actual_candidates)
+    nearest_neigbors = lsh.get_nearest_neigbors(query=q_vec, radius=.1)
+    
+    print(nearest_neigbors)
 

@@ -28,9 +28,9 @@ The MinHash class has the following methods and attributes:
 
 The LSH class has the following methods and attributes:
 
-    __init__(self, nfuncs, bands, radius=1): 
+    __init__(self, nfuncs, bands): 
         This method is the constructor of the class. It initializes the object with the number of hash functions (nfuncs), the number of
-        bands (bands) used to partition the signature matrix, and the radius (radius) used to search for similar columns.
+        bands (bands) used to partition the signature matrix
         The attribute hash_tables is initially set to None.
 
     partition_into_bands(self, sm):
@@ -46,11 +46,11 @@ The LSH class has the following methods and attributes:
         This method finds candidate column pairs for the input matrix by looking for columns that have the same hash value
         in the same band of the signature matrix (items in same buckets). It returns a set of candidate column pairs.
 
-    candidates(self, sim_function=cosine_similarity):
+    get_nearest_neighbors(self, sim_function=cosine_similarity, radius=1):
         This method finds similar columns in the input matrix based on the similarity function passed as an argument.
         By default, it uses the cosine similarity function. It uses the _find_candidates() method to find the candidate column pairs,
         then it filters false positives by their similarity and return the columns that have a similarity greater
-        than the radius specified in the constructor.
+        than the radius specified in the constructor. Radius indicates the area to search
 """
 
 class MinHash:
@@ -119,19 +119,16 @@ class MinHash:
 
 
 class LSH:
-    def __init__(self, nfuncs, bands, radius=1):
+    def __init__(self, nfuncs, bands):
 
         # shingle size
         self.nfuncs = nfuncs
         
         # define size of bands partition
         self.bands = bands
-
-        # radius to search for 
-        self.radius = radius
         
         # Initialize a list to store the hash tables
-        self.hash_tables = None
+        self.hash_tables = []
         
 
     # class method to partition signature matrix into b bands
@@ -151,16 +148,15 @@ class LSH:
     
 
     # Hash each band of the matrix M to a hash table with k buckets
-    def fit(self, data, buckets):
+    def fit(self, data, num_buckets):
+
+        self.num_buckets = num_buckets
         
         # create and define as class attribute minhash object
         self.hash_mehod = MinHash(data, nfuncs=self.nfuncs)
        
         # each column represent the signature of each document
         sign_matrix = self.hash_mehod._signature_matrix()
-        
-        # Initialize a list to store the hash tables
-        hash_tables = []
 
         # split into bands
         bands = self.partition_into_bands(sign_matrix)
@@ -169,34 +165,31 @@ class LSH:
         for band in bands:
 
             # Create an empty hash table with k buckets
-            hash_table = [set() for _ in range(buckets)]
+            hash_table = [set() for _ in range(self.num_buckets)]
 
             # Hash each column of the band to a bucket in the hash table
             for j, column in enumerate(band.T):
 
                 # Compute the hash value of the column
-                hash_value = hash(tuple(column)) % buckets
+                hash_value = hash(tuple(column)) % self.num_buckets
 
                 # Add the column to the corresponding bucket in the hash table
                 hash_table[hash_value].add(j)
 
             # Add the hash table to the list
-            hash_tables.append(hash_table)
-
-        # assign to class attribute
-        self.hash_tables = hash_tables
+            self.hash_tables.append(hash_table)
 
         return self
 
 
     # Find the candidate column pairs for the matrix M
-    def _find_candidates(self):
+    def _get_candidates(self):
 
       # Initialize a set to store the candidate column pairs
       candidates = set()
 
       # For each band, find the candidate column pairs
-      for i, hash_table in enumerate(self.hash_tables):
+      for hash_table in self.hash_tables:
 
         # For each bucket in the hash table
         for bucket in hash_table:
@@ -210,23 +203,59 @@ class LSH:
       return candidates
 
 
-    def candidates(self, sim_function=cosine_similarity):
+    def _format_buckets(self):
 
-        # get reduced candidates 
-        cands = self._find_candidates()
+        # Initialize a set to store the candidate column pairs
+        candidates = [set() for _ in range(self.num_buckets)]
 
-        # each document is represented by a column
-        one_hot_matrix = self.hash_mehod.one_hot_matrix
-        
-        actual_cands = {}              
+        # For each band's hash_table, find the candidate column pairs
+        for hash_table in self.hash_tables:
 
-        # filter by similarity 
-        for c1, c2 in cands:
-            # get similarity
-            sim = sim_function(one_hot_matrix[:, c1], one_hot_matrix[:, c2])
-            # if above given threshold
-            if sim >= self.radius: 
-                actual_cands[c1, c2] = sim 
+            # For each bucket in the hash table
+            for i, bucket in enumerate(hash_table):
 
-        return actual_cands      
+                # If there is more than one column in the bucket
+                if len(bucket) > 1:
+
+                    # Add all pairs of columns in the bucket to the candidates set
+                    candidates[i].update(combinations(bucket, 2))
+
+        # Return the candidate column pairs
+        return candidates  
       
+
+    def neigbors(self, similar=.6, dist_func=cosine_similarity):
+        
+        # fetch unfiltered candidates
+        cands = set().union(*self._format_buckets())
+        
+        actual_neigbors = {}
+
+        # for each pair in each bucket of each band
+        for c1, c2 in cands:
+
+            # get similarity
+            sim = dist_func(self.hash_mehod.one_hot_matrix[:, c1], self.hash_mehod.one_hot_matrix[:, c2])
+            
+            # if above given threshold
+            if sim >= similar: actual_neigbors[c1, c2] = sim 
+
+        return actual_neigbors
+
+
+    def get_nearest_neigbors(self, query, radius=.1):
+        
+        # get concatenated form of hashed band buckets
+        buckets = self._format_buckets()
+        
+        # create hash value for the query item
+        query_hash = hash(tuple(query)) % self.num_buckets
+        
+        # neibgor buckets index
+        index = int((len(buckets) * radius)//2)
+
+        # include left and right neigbor buckets within the radius
+        cands = set.union(*buckets[index:query_hash-1], buckets[query_hash], *buckets[query_hash+1:index])
+
+        return cands
+
