@@ -222,6 +222,7 @@ class MBRNode:
             of the rectangle based on the coordinates of the points in the node or the MBR of its children.
         """
         if self.is_leaf():
+            
             x_coords = [point[0] for point in self.points]
             y_coords = [point[1] for point in self.points]
 

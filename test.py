@@ -8,6 +8,14 @@ from mdds.point import Point
 from pandas import read_csv
 from numpy import stack
 
+from timeit import timeit
+from time import time
+from sys import getsizeof
+from matplotlib import pyplot
+from pandas import DataFrame
+
+pyplot.style.use('seaborn')
+
 
 if __name__ == "__main__":
 
@@ -42,18 +50,15 @@ if __name__ == "__main__":
     
     print(f"Total points: {len(points)}")
 
-    
+    sizes = [1000, 10_000, 100_000, 1_000_000, 10_000_000]
     ds_build_time = []
-    ds_query_time = []
+    ds_range_time = []
     ds_space = []
+    ann_time = []
     total_time = []
     # number of exp iterations
-    n = 1000
-    from timeit import timeit
-    from time import time
-    from sys import getsizeof
-    from matplotlib import pyplot
-    ################################################# QUERING #############################################
+    n = 1
+    ################## QUERING #############################################
 
     # define ranges on each axis
     x_range = stit.scale(['A', 'Z'])
@@ -71,7 +76,7 @@ if __name__ == "__main__":
     ds_space += [getsizeof(range_tree)]
 
     # time query of range tree
-    ds_query_time += [timeit(lambda: range_tree.range_search(x_range, y_range), number=n)]
+    ds_range_time += [timeit(lambda: range_tree.range_search(x_range, y_range), number=n)]
 
     # make query
     range_tree_retrieved = range_tree.range_search(x_range, y_range)
@@ -84,15 +89,15 @@ if __name__ == "__main__":
     
     # create LSH model providing the bands magnitute 
     # in fit hashes each column for each band of the sign matrix M to a hash table with k buckets
-    lsh = LSH(nfuncs=50, bands=5, radius=0.6).fit(data=query_one_hot, buckets=100)
+    lsh = LSH(nfuncs=50, bands=5).fit(data=query_one_hot, num_buckets=100)
  
     # get candidates with similarity/radius bigger than 60%
-    actual_candidates = lsh.candidates(sim_function=cosine_similarity)
+    actual_candidates = lsh.neigbors(similar=0.7, dist_func=cosine_similarity)
 
-    total_time += [(time()-start)*n]
+    ann_time += [(time()-start)*n]
 
     # print(actual_candidates)
-    print(len(actual_candidates))
+    print(actual_candidates)
 
 
     ######################## KD-Tree ##################################
@@ -107,7 +112,7 @@ if __name__ == "__main__":
     ds_space += [getsizeof(kdtree)]
 
     # time query of KD tree
-    ds_query_time += [timeit(lambda: kdtree.range_search(query=(x_range, y_range)), number=n)]
+    ds_range_time += [timeit(lambda: kdtree.range_search(query=(x_range, y_range)), number=n)]
 
     kdtree_tree_retrieved = kdtree.range_search(query=(x_range, y_range))
     print(f"KDTree Retrieved: {len(kdtree_tree_retrieved)}")
@@ -119,15 +124,15 @@ if __name__ == "__main__":
     
     # create LSH model providing the bands magnitute 
     # in fit hashes each column for each band of the sign matrix M to a hash table with k buckets
-    lsh = LSH(nfuncs=50, bands=5, radius=0.6).fit(data=query_one_hot, buckets=100)
+    lsh = LSH(nfuncs=50, bands=5).fit(data=query_one_hot, num_buckets=100)
  
     # get candidates with similarity/radius bigger than 60%
-    actual_candidates = lsh.candidates(sim_function=cosine_similarity)
+    actual_candidates = lsh.neigbors(similar=0.7, dist_func=cosine_similarity)
     
-    total_time += [(time()-start)*n]
+    ann_time += [(time()-start)*n]
 
     # print(actual_candidates)
-    print(len(actual_candidates))
+    print(actual_candidates)
 
 
     ######################## Quad Tree + LSH ##################################
@@ -146,7 +151,7 @@ if __name__ == "__main__":
     search_region = qtree.bounds_to_rect(Point(x_range[0], y_range[0]), Point(x_range[1], y_range[1]))
 
     # time query of Quad tree
-    ds_query_time += [timeit(lambda: qtree.range_search(search_region), number=n)]
+    ds_range_time += [timeit(lambda: qtree.range_search(search_region), number=n)]
 
     # make query
     quad_tree_retrieved = qtree.range_search(search_region)
@@ -159,15 +164,15 @@ if __name__ == "__main__":
     
     # create LSH model providing the bands magnitute 
     # in fit hashes each column for each band of the sign matrix M to a hash table with k buckets
-    lsh = LSH(nfuncs=50, bands=5, radius=0.6).fit(data=query_one_hot, buckets=100)
+    lsh = LSH(nfuncs=50, bands=5).fit(data=query_one_hot, num_buckets=100)
  
     # get candidates with similarity/radius bigger than 60%
-    actual_candidates = lsh.candidates(sim_function=cosine_similarity)
+    actual_candidates = lsh.neigbors(similar=0.7, dist_func=cosine_similarity)
     
-    total_time += [(time()-start)*n]
+    ann_time += [(time()-start)*n]
 
     # print(actual_candidates)
-    print(len(actual_candidates))
+    print(actual_candidates)
 
 
     ######################## R-Tree + LSH ##################################
@@ -185,7 +190,7 @@ if __name__ == "__main__":
     ds_space += [getsizeof(rtree)]
 
     # time query of R tree
-    ds_query_time += [timeit(lambda: rtree.range_search(Rectangle(x_range[0], y_range[0], x_range[1], y_range[1])), number=n)]
+    ds_range_time += [timeit(lambda: rtree.range_search(Rectangle(x_range[0], y_range[0], x_range[1], y_range[1])), number=n)]
 
     # retrieve query data
     rtree_retrieved = rtree.range_search(Rectangle(x_range[0], y_range[0], x_range[1], y_range[1]))
@@ -197,33 +202,36 @@ if __name__ == "__main__":
     
     # create LSH model providing the bands magnitute 
     # in fit hashes each column for each band of the sign matrix M to a hash table with k buckets
-    lsh = LSH(nfuncs=50, bands=5, radius=0.6).fit(data=query_one_hot, buckets=100)
+    lsh = LSH(nfuncs=50, bands=5).fit(data=query_one_hot, num_buckets=100)
  
     # get candidates with similarity/radius bigger than 60%
-    actual_candidates = lsh.candidates(sim_function=cosine_similarity)
-
-    total_time += [(time()-start)*n]
+    actual_candidates = lsh.neigbors(similar=.7, dist_func=cosine_similarity)
+    ann_time += [(time()-start)*n]
 
     # print(actual_candidates)
-    print(len(actual_candidates))
+    print(actual_candidates)
 
+    # total_time = [ds_range_time[i]+ann_time[i] for i in range(len(ds_range_time))]
     print("RangeTree - KD-Tree - QuadTree - R-Tree")
     print("Build time:")
     print(ds_build_time)
-    print("Query time:")
-    print(ds_query_time)
+    print("Range Search time:")
+    print(ds_range_time)
+    print("ANN time:")
+    print(ann_time)
+    # print("Range Search + ANN time:")
+    # print(total_time)
     print("Space:")
     print(ds_space)
-    print("Build + Query + LSH time:")
-    print(total_time)
-
-    from pandas import DataFrame
+    
     df = DataFrame({'Data Structure':['RangeTree', 'KDTree', 'QuadTree', 'R-Tree'], 
                     'Construction Time': ds_build_time,
-                    'Query Time': ds_query_time,
-                    'Total Time': total_time})
+                    'Range Search Time': ds_range_time,
+                    'Aproximate NN Time': ann_time})
 
     print(df)
     print(df.plot(x='Data Structure', marker='.', ylabel='Time * 1000 (sec)', logy=True))
+    pyplot.tight_layout() # helps with padding
+    pyplot.grid(True) # enables the grid plot
     pyplot.show()
     

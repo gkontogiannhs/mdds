@@ -39,7 +39,7 @@ class StringToIntTransformer:
         self.string_max_length = 0
         self.max_value = float('-inf')
         self.min_value = float('+inf')
-        # self.names = [{1:{'name':'some', 'value':4}}]
+
 
     # method to fill char_to_int_mapping
     def fit(self, X, y=None):

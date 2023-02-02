@@ -46,7 +46,7 @@ if __name__ == '__main__':
     rtree = RTree()
 
     # insert points
-    for point in points: rtree.insert(point)
+    rtree.insert(points)
 
     # define ranges on each axis
     x_range = stit.scale(['A', 'G'])

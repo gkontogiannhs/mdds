@@ -32,9 +32,9 @@ if __name__ == '__main__':
     ohm_edu = stack([one_hot_encoding(vocabulary, edu) for edu in docs]).T
     
     points = []
-    for i, (surname, awards, edu_vector) in enumerate(zip(int_surnames, awards, ohm_edu)):
+    for i, (surname, award, edu_vector) in enumerate(zip(int_surnames, awards, ohm_edu)):
         # create points list
-        points += [Point(surname, awards, edu_vector, i)]
+        points += [Point(surname, award, edu_vector, i)]
     
     print(f"Total points: {len(points)}")
 

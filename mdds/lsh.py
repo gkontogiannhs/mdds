@@ -42,15 +42,20 @@ The LSH class has the following methods and attributes:
         method from the MinHash class. It then partitions the signature matrix into bands and uses the hash values of the columns
         of each band to create a list of hash tables with buckets number of buckets.
 
-    _find_candidates(self):
+    _get_candidates(self):
         This method finds candidate column pairs for the input matrix by looking for columns that have the same hash value
         in the same band of the signature matrix (items in same buckets). It returns a set of candidate column pairs.
 
-    get_nearest_neighbors(self, sim_function=cosine_similarity, radius=1):
-        This method finds similar columns in the input matrix based on the similarity function passed as an argument.
-        By default, it uses the cosine similarity function. It uses the _find_candidates() method to find the candidate column pairs,
-        then it filters false positives by their similarity and return the columns that have a similarity greater
-        than the radius specified in the constructor. Radius indicates the area to search
+    neigbors(self, similarity, dist_function):
+        This method takes two arguments, the similar threshold and the function to measure distance between points.
+        It returns all the points that have similarity >= similar. This method finds similar columns in the input matrix based on the
+        similarity function passed as an argument. By default, it uses the cosine similarity function. It uses the _find_candidates()
+        method to find the candidate column pairs, then it filters false positives by their similarity and return the columns that
+        have a similarity greater than the specified threshold
+
+    get_nearest_neighbors(self, query, radius):
+        This method, tries to return the points that are similar to a query. This is done by hashing the query and returning the 
+        hashed bucket plus the buckets within the specified raddius.
 """
 
 class MinHash:
@@ -183,7 +188,7 @@ class LSH:
 
 
     # Find the candidate column pairs for the matrix M
-    def _get_candidates(self):
+    def cands(self):
 
       # Initialize a set to store the candidate column pairs
       candidates = set()
@@ -203,7 +208,7 @@ class LSH:
       return candidates
 
 
-    def _format_buckets(self):
+    def _get_candidates(self):
 
         # Initialize a set to store the candidate column pairs
         candidates = [set() for _ in range(self.num_buckets)]
@@ -227,7 +232,7 @@ class LSH:
     def neigbors(self, similar=.6, dist_func=cosine_similarity):
         
         # fetch unfiltered candidates
-        cands = set().union(*self._format_buckets())
+        cands = set().union(*self._get_candidates())
         
         actual_neigbors = {}
 
@@ -246,7 +251,7 @@ class LSH:
     def get_nearest_neigbors(self, query, radius=.1):
         
         # get concatenated form of hashed band buckets
-        buckets = self._format_buckets()
+        buckets = self._get_candidates()
         
         # create hash value for the query item
         query_hash = hash(tuple(query)) % self.num_buckets
