@@ -124,3 +124,38 @@ plt.show()
 Contributing
 If you would like to contribute to the QuadTree library, please feel free to submit a pull request.
 
+
+
+## LSH Implementation
+This repository contains an implementation of Locality Sensitive Hashing (LSH) in Python, using Numpy and other libraries. The implementation includes two main classes: MinHash and LSH.
+
+### MinHash Class
+The MinHash class is used to generate a signature matrix of an input one-hot encoded matrix. The following methods are available in the MinHash class:
+
+__init__: This method is the constructor of the class and initializes the object with the input one-hot encoded matrix, the number of hash functions (nfuncs), and the signature matrix (sign_matrix) which is initially set to None.
+
+_hash: This method creates a list of indices of the rows of the one-hot encoded matrix in a random order.
+
+build_functions: This method builds nfuncs number of hash functions by calling the _hash() method.
+
+_signature_matrix: This method creates the signature matrix of the input one-hot encoded matrix using the hash functions created by the build_functions() method. It assigns the signature matrix to the sign_matrix attribute of the class and returns the signature matrix.
+
+### LSH Class
+The LSH class is used to perform approximate nearest neighbor search on the signature matrix using Locality Sensitive Hashing (LSH). The following methods are available in the LSH class:
+
+__init__: This method is the constructor of the class and initializes the object with the number of hash functions (nfuncs), the number of bands (bands) used to partition the signature matrix. The attribute hash_tables is initially set to None.
+
+partition_into_bands: This method partitions the signature matrix (sm) into bands number of bands.
+
+fit: This method is used to fit the LSH model to the input data. It creates an object of the MinHash class with the input data and nfuncs number of hash functions. It then creates the signature matrix using the _signature_matrix() method from the MinHash class. It then partitions the signature matrix into bands and uses the hash values of the columns of each band to create a list of hash tables with buckets number of buckets.
+
+_get_candidates: This method finds candidate column pairs for the input matrix by looking for columns that have the same hash value in the same band of the signature matrix (items in same buckets). It returns a set of candidate column pairs.
+
+neighbors: This method takes two arguments, the similarity threshold and the function to measure distance between points. It returns all the points that have similarity >= similar. This method finds similar columns in the input matrix based on the similarity function passed as an argument. By default, it uses the cosine similarity function. It uses the _find_candidates() method to find the candidate column pairs, then it filters false positives by their similarity and return the columns that have a similarity greater than the specified threshold.
+
+get_nearest_neighbors: This method tries to return the points that are similar to a query. This is done by hashing the query and returning the hashed bucket plus the buckets within the specified radius.
+
+### Usage
+To use the implementation, you need to create an object of the LSH class and call its fit method to fit the model to the input data. You can then call the `get_nearest
+
+
