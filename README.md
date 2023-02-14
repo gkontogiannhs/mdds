@@ -107,13 +107,13 @@ This implementation is intended as a simple starting point for those who want to
 
 
 
-QuadTree
+### QuadTree  
 A Python implementation of a QuadTree data structure for efficient 2D spatial partitioning.
 
-Introduction
+### Introduction
 QuadTrees are a tree data structure used for efficient 2D spatial partitioning. They divide a 2D space into 4 equal quadrants, and recursively partition each quadrant until all elements fit into a single node. This makes it possible to quickly find all elements in a given region, or determine if an element intersects with another element.
 
-Features
+### Features
 Insertion of points into the QuadTree
 Removal of points from the QuadTree
 Retrieval of points within a bounding box
@@ -122,7 +122,7 @@ Fast and efficient search for elements in a given region
 Installation
 To install the QuadTree library, simply clone the repository and run pip install . from the root directory.
 
-Usage
+### Usage
 Here is an example of how to use the QuadTree to insert points, retrieve points within a bounding box, and visualize the structure of the tree:
 
 ```
