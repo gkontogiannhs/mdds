@@ -1,6 +1,20 @@
+# Multi-Dimensional-DS
+### Requirements
+This implementation requires Python 3.x.
+
 ## 2D Range Tree
 This repository contains a Python implementation of a 2D range tree, along with a simple example usage.  
-A 2D range tree is a data structure that can be used for efficient range searching in two-dimensional space. It's implemented using two 1D range trees, one built on the x-coordinates and one built on the y-coordinates.
+A 2D range tree is a data structure that can be used for efficient range searching in two-dimensional space. It's implemented using 1D range trees, one built on the x-coordinates and one built on the y-coordinates. The RangeTree1D class is implemented as a binary search tree where the nodes represent points and each node has a left and a right child representing the points that are less than or greater than the point at the node, respectively.
+
+### Implementation details
+The RangeTree2D class has three main methods:
+
+- __init__(self, points): The constructor for the class. Takes a list of points in 2D space represented as tuples of x, y coordinates.
+
+- _build_tree(self, points, depth): A recursive method that builds the 2D range tree. Takes a list of points and the current depth of the tree.
+
+- range_search(self, query, depth): A method that queries the tree and finds all points that lie within a specified range. Takes a tuple representing the range in (xmin, xmax, ymin, ymax) format and the current depth of the tree.
+
 
 ### Usage
 To use the 2D range tree, you can create an instance of the RangeTree2D class and pass in a list of points in 2D space:
@@ -14,26 +28,15 @@ result = tree.range_search((2, 6, 3, 8))
 print(result)  # [(3, 4), (5, 6)]
 ```
 
-### Implementation details
-The RangeTree2D class has three main methods:
-
-__init__(self, points): The constructor for the class. Takes a list of points in 2D space represented as tuples of x, y coordinates.
-
-_build_tree(self, points, depth): A recursive method that builds the 2D range tree. Takes a list of points and the current depth of the tree.
-
-range_search(self, query, depth): A method that queries the tree and finds all points that lie within a specified range. Takes a tuple representing the range in (xmin, xmax, ymin, ymax) format and the current depth of the tree.
-
-The RangeTree2D class uses two 1D range trees, represented by the RangeTree1D class. The RangeTree1D class is implemented as a binary search tree where the nodes represent points and each node has a left and a right child representing the points that are less than or greater than the point at the node, respectively.
-
-
-## Multi-Dimensional-DS
-
 ## KD-Tree
 This is an implementation of a KD-Tree in Python. KD-Trees are a type of space partitioning data structure that can be used to efficiently store and
-search for points in K-dimensional space.
+search for points in K-dimensional space. The KD-Tree is implemented using a recursive divide-and-conquer approach. The data structure consists of a set of nodes, each of which represents a region of K-dimensional space. The space is partitioned recursively by splitting along the median value of the data along one of the K dimensions. The result is a balanced binary search tree, where the nodes are ordered based on the values along one of the dimensions.
 
-### Requirements
-This implementation requires Python 3.x.
+A range search is performed by traversing the tree and checking if the current node's value falls within the query range. 
+If it does, the node is added to the list of matches. If the query range intersects the region represented by the current node,
+the search continues in both the left and right subtrees. If the value at the current node is outside the query range,
+the search continues in only one of the subtrees, depending on which side of the range the value falls.
+
 
 ### Usage
 To use the KD-Tree, you'll need to create an instance of the KDTree class, passing in a list of points and the number of dimensions. For example:
@@ -48,17 +51,6 @@ query = [[0, 3], [0, 3]]
 result = kdtree.range_search(query)
 print(result) # [[1, 2], [3, 4]]
 ```
-
-### Technical Summary
-The KD-Tree is implemented using a recursive divide-and-conquer approach. The data structure consists of a set of nodes, each of which represents a region
-of K-dimensional space. The space is partitioned recursively by splitting along the median value of the data along one of the K dimensions. 
-The result is a balanced binary search tree, where the nodes are ordered based on the values along one of the dimensions.
-
-A range search is performed by traversing the tree and checking if the current node's value falls within the query range. 
-If it does, the node is added to the list of matches. If the query range intersects the region represented by the current node,
-the search continues in both the left and right subtrees. If the value at the current node is outside the query range,
-the search continues in only one of the subtrees, depending on which side of the range the value falls.
-
 
 ## R-Tree Implementation
 This is an implementation of an R-Tree, a spatial index data structure used to efficiently search and query 2D data sets.
@@ -104,7 +96,6 @@ before it must be split. If a node is split, its entries are distributed among t
 
 ### Contributions
 This implementation is intended as a simple starting point for those who want to learn about R-Trees. Contributions to improve the implementation or add new features are welcome.
-
 
 
 ### QuadTree  
