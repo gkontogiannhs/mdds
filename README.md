@@ -1,3 +1,31 @@
+## 2D Range Tree
+This repository contains a Python implementation of a 2D range tree, along with a simple example usage.  
+A 2D range tree is a data structure that can be used for efficient range searching in two-dimensional space. It's implemented using two 1D range trees, one built on the x-coordinates and one built on the y-coordinates.
+
+### Usage
+To use the 2D range tree, you can create an instance of the RangeTree2D class and pass in a list of points in 2D space:
+```
+points = [(1, 2), (3, 4), (5, 6), (7, 8), (9, 10)]
+tree = RangeTree2D(points)
+```
+You can then use the range_search method to query the tree and find all points that lie within a specified range:
+```
+result = tree.range_search((2, 6, 3, 8))
+print(result)  # [(3, 4), (5, 6)]
+```
+
+### Implementation details
+The RangeTree2D class has three main methods:
+
+__init__(self, points): The constructor for the class. Takes a list of points in 2D space represented as tuples of x, y coordinates.
+
+_build_tree(self, points, depth): A recursive method that builds the 2D range tree. Takes a list of points and the current depth of the tree.
+
+range_search(self, query, depth): A method that queries the tree and finds all points that lie within a specified range. Takes a tuple representing the range in (xmin, xmax, ymin, ymax) format and the current depth of the tree.
+
+The RangeTree2D class uses two 1D range trees, represented by the RangeTree1D class. The RangeTree1D class is implemented as a binary search tree where the nodes represent points and each node has a left and a right child representing the points that are less than or greater than the point at the node, respectively.
+
+
 ## Multi-Dimensional-DS
 
 ## KD-Tree
