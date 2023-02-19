@@ -1,18 +1,15 @@
-from mdds.trees.kdtree import KDTree
+from mdds.trees import KDTree, RangeTree2D, QuadTree
+from mdds.neigbors import LSH
 from mdds.helpers import StringToIntTransformer, kshingle, one_hot_encoding, jaccard, cosine_similarity
-from mdds.lsh import LSH
-from mdds.trees.quadtree import QuadTree
-from mdds.trees.rangetree import RangeTree2D
-from mdds.trees.rtree import RTree, Rectangle
-from mdds.point import Point
-from pandas import read_csv
+from mdds.trees import RTree, Rectangle
+from mdds.geometry.point import Point
+from pandas import read_csv, DataFrame
 from numpy import stack
 
 from timeit import timeit
 from time import time
 from sys import getsizeof
 from matplotlib import pyplot
-from pandas import DataFrame
 
 pyplot.style.use('seaborn')
 
@@ -30,7 +27,7 @@ if __name__ == "__main__":
     # convert sting surnames to int
     stit = StringToIntTransformer().fit(surnames)
     int_surnames = stit.transform(surnames)
-
+    
     # awards per scientist
     awards = dataset['Awards'].to_list()
 
@@ -44,13 +41,12 @@ if __name__ == "__main__":
     ohm_edu = stack([one_hot_encoding(vocabulary, edu) for edu in docs]).T
     
     points = []
-    for i, (surname, awards, edu_vector) in enumerate(zip(int_surnames, awards, ohm_edu)):
+    for i, (surname, award, edu_vector) in enumerate(zip(int_surnames, awards, ohm_edu)):
         # create points list
-        points += [Point(surname, awards, edu_vector, i)]
+        points += [Point(surname, award, edu_vector, i)]
     
     print(f"Total points: {len(points)}")
 
-    sizes = [1000, 10_000, 100_000, 1_000_000, 10_000_000]
     ds_build_time = []
     ds_range_time = []
     ds_space = []
@@ -61,8 +57,8 @@ if __name__ == "__main__":
     ################## QUERING #############################################
 
     # define ranges on each axis
-    x_range = stit.scale(['A', 'Z'])
-    y_range = (0, 100)
+    x_range = stit.transform(['A', 'Z'])
+    y_range = (0, 10)
 
     ######################## Range Tree ##################################
 
@@ -81,7 +77,7 @@ if __name__ == "__main__":
     # make query
     range_tree_retrieved = range_tree.range_search(x_range, y_range)
     print(f"Range Tree Retrieved: {len(range_tree_retrieved)}")
-    
+
     start = time()
     # applying LSH
     indices = [point.id for point in range_tree_retrieved]
@@ -133,7 +129,7 @@ if __name__ == "__main__":
 
     # print(actual_candidates)
     print(actual_candidates)
-
+    
 
     ######################## Quad Tree + LSH ##################################
 
@@ -195,7 +191,10 @@ if __name__ == "__main__":
     # retrieve query data
     rtree_retrieved = rtree.range_search(Rectangle(x_range[0], y_range[0], x_range[1], y_range[1]))
     print(f"RTree Retrieved: {len(rtree_retrieved)}")
-    
+
+    # for scientist in rtree_retrieved:
+    #    print(surnames[scientist.id], awards[scientist.id])
+
     start = time()
     indices = [point.id for point in rtree_retrieved]
     query_one_hot = ohm_edu[indices].T

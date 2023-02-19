@@ -1,5 +1,5 @@
 from mdds.trees.rtree import RTree, Rectangle
-from mdds.point import Point
+from mdds.geometry import Point
 from mdds.helpers import *
 from pandas import read_csv
 from numpy import stack

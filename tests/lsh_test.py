@@ -1,5 +1,5 @@
 from mdds.helpers import *
-from mdds.lsh import LSH
+from mdds.neigbors import LSH
 
 from numpy import stack
 from pandas import read_csv

@@ -36,7 +36,6 @@ def cosine_similarity(u, v):
 class StringToIntTransformer:
     def __init__(self):
         self.char_to_int_mapping = {}
-        self.string_max_length = 0
         self.max_value = float('-inf')
         self.min_value = float('+inf')
 
@@ -44,11 +43,11 @@ class StringToIntTransformer:
     # method to fill char_to_int_mapping
     def fit(self, X, y=None):
         for string in X:
-            self.string_max_length = max(self.string_max_length, len(string))
             for char in string:
                 if char.isalpha():
                     ascii_val = ord(char.upper()) - ord('A') + 1
-                    self.char_to_int_mapping[char] = ascii_val
+                    if char not in self.char_to_int_mapping:
+                        self.char_to_int_mapping[char] = ascii_val
         return self
     
     
@@ -56,17 +55,14 @@ class StringToIntTransformer:
 
         X_transformed = []
         for string in X:
-            string_sum = 0
+        
+            value = 0
             for char in string:
                 if char.isalpha():
-                    string_sum += self.char_to_int_mapping.get(char.upper(), 0)
+                    value += self.char_to_int_mapping.get(char.upper(), 0)
+                    break
 
-            if string_sum > self.max_value and len(string) > 1:
-                self.max_value = string_sum
-            elif string_sum < self.min_value and len(string) > 1:
-                self.min_value = string_sum
-
-            X_transformed.append(string_sum)
+            X_transformed.append(value)
 
         return X_transformed
     
@@ -74,7 +70,10 @@ class StringToIntTransformer:
     def scale(self, char_bound):
 
         values = self.transform(char_bound)
-        
+
+        min_value = min(self.char_to_int_mapping.values())
+        max_value = max(self.char_to_int_mapping.values())
+
         scaled_values = []
         for value in values:
             scaled_values += [int((value - 1) * (self.max_value - self.min_value) / (26 - 1) + self.min_value)]

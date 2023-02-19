@@ -1,12 +1,11 @@
-from mdds.trees.kdtree import KDTree
-from mdds.point import Point
+from mdds.trees import RangeTree2D
+from mdds.geometry import Point
 from mdds.helpers import *
 from pandas import read_csv
 from numpy import stack
-from random import randint
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
 
     ####################### PREPROCCESS AND DATA FORMATION ###########################################
     
@@ -39,14 +38,16 @@ if __name__ == '__main__':
     
     print(f"Total points: {len(points)}")
 
-
     # define ranges on each axis
     x_range = stit.scale(['A', 'G'])
     y_range = (0, 5)
 
-    # Create and build KD-Tree
-    kdtree = KDTree(points, k=2)
+    ######################## Range Tree #################################
 
-    results = kdtree.range_search(query=(x_range, y_range))
-    print(f"Range Search:")
+    # Create and build tree
+    range_tree = RangeTree2D(points)
+
+    # make query
+    results = range_tree.range_search(x_range, y_range)
+    print("Range Search results:")
     print(results)

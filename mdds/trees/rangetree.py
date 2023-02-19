@@ -23,7 +23,7 @@
 
 class Node:
     '''
-        Represents a node in the 2D range tree.
+        Represents a node in the range tree.
         Each node has the following attributes:
             - left: the left child node of the current node
             - right: the right child node of the current node

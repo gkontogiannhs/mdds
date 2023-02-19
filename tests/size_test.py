@@ -1,10 +1,10 @@
 from mdds.trees.kdtree import KDTree
 from mdds.helpers import StringToIntTransformer, kshingle, one_hot_encoding, jaccard, cosine_similarity
-from mdds.lsh import LSH
-from mdds.trees.quadtree import QuadTree
-from mdds.trees.rangetree import RangeTree2D
-from mdds.trees.rtree import RTree, Rectangle
-from mdds.point import Point
+from mdds.neigbors import LSH
+from mdds.trees import QuadTree
+from mdds.trees import RangeTree2D
+from mdds.trees import RTree, Rectangle
+from mdds.geometry import Point
 
 
 from timeit import timeit

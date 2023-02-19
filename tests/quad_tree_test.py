@@ -1,5 +1,5 @@
-from mdds.trees.quadtree import QuadTree
-from mdds.point import Point
+from mdds.trees import QuadTree
+from mdds.geometry import Point
 from mdds.helpers import *
 from pandas import read_csv
 from numpy import stack
