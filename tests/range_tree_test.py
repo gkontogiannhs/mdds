@@ -1,6 +1,16 @@
+from os.path import dirname, abspath
+from sys import path
+
+# Get the path to the project root directory
+root_dir = dirname(dirname(abspath(__file__)))
+# Add the root directory to the system path
+path.append(root_dir)
+
+
 from mdds.trees import RangeTree2D
 from mdds.geometry import Point
 from mdds.helpers import *
+
 from pandas import read_csv
 from numpy import stack
 
@@ -10,7 +20,7 @@ if __name__ == "__main__":
     ####################### PREPROCCESS AND DATA FORMATION ###########################################
     
     # load datasets
-    dataset = read_csv('List_of_computer_scientists.csv')
+    dataset = read_csv('..\List_of_computer_scientists.csv')
 
     # surnames
     surnames = [fullname.split()[-1] for fullname in dataset['Name'].to_list()]
@@ -39,7 +49,7 @@ if __name__ == "__main__":
     print(f"Total points: {len(points)}")
 
     # define ranges on each axis
-    x_range = stit.scale(['A', 'G'])
+    x_range = stit.transform(['A', 'G'])
     y_range = (0, 5)
 
     ######################## Range Tree #################################

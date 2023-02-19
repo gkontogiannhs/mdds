@@ -1,11 +1,14 @@
-from mdds.trees.kdtree import KDTree
-from mdds.helpers import StringToIntTransformer, kshingle, one_hot_encoding, jaccard, cosine_similarity
-from mdds.neigbors import LSH
-from mdds.trees import QuadTree
-from mdds.trees import RangeTree2D
-from mdds.trees import RTree, Rectangle
-from mdds.geometry import Point
+from os.path import dirname, abspath
+from sys import path
 
+# Get the path to the project root directory
+root_dir = dirname(dirname(abspath(__file__)))
+# Add the root directory to the system path
+path.append(root_dir)
+
+from mdds.trees import KDTree, QuadTree, RangeTree2D, RTree
+from mdds.trees import Rectangle
+from mdds.geometry import Point
 
 from timeit import timeit
 from time import time

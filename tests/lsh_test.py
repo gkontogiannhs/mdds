@@ -1,3 +1,11 @@
+from os.path import dirname, abspath
+from sys import path
+
+# Get the path to the project root directory
+root_dir = dirname(dirname(abspath(__file__)))
+# Add the root directory to the system path
+path.append(root_dir)
+
 from mdds.helpers import *
 from mdds.neigbors import LSH
 
@@ -8,7 +16,7 @@ from pandas import read_csv
 if __name__ == "__main__":
 
     # load datasets
-    dataset = read_csv('List_of_computer_scientists.csv')
+    dataset = read_csv('..\List_of_computer_scientists.csv')
 
     # data to hash
     data = dataset['Education'].to_list()
@@ -28,7 +36,7 @@ if __name__ == "__main__":
 
     # get neigbors with similarity bigger than 60%
     actual_neigbors = lsh.neigbors(similar=0.65, dist_func=cosine_similarity)
-    print(actual_neigbors)
+    print(actual_neigbors, end='\n\n')
 
     import numpy as np
     q_vec = np.random.choice(2, len(vocabulary))
