@@ -159,9 +159,6 @@ min_entries represents the minimum number of entries a node should contain, whil
 before it must be split. If a node is split, its entries are distributed among two new nodes such that the resulting nodes are as balanced as possible.
 
 
-## LSH Implementation
-This repository contains an implementation of Locality Sensitive Hashing (LSH) in Python, using Numpy and other libraries. The implementation includes two main classes: MinHash and LSH.
-
 ### MinHash Class
 The MinHash class is used to generate a signature matrix of an input one-hot encoded matrix. The following methods are available in the MinHash class:
 
@@ -174,7 +171,8 @@ build_functions: This method builds nfuncs number of hash functions by calling t
 _signature_matrix: This method creates the signature matrix of the input one-hot encoded matrix using the hash functions created by the build_functions() method. It assigns the signature matrix to the sign_matrix attribute of the class and returns the signature matrix.
 
 ### LSH Class
-The LSH class is used to perform approximate nearest neighbor search on the signature matrix using Locality Sensitive Hashing (LSH). The following methods are available in the LSH class:
+The LSH class is used to perform approximate nearest neighbor search on the signature matrix using Locality Sensitive Hashing (LSH). 
+The following methods are available in the LSH class:
 
 __init__: This method is the constructor of the class and initializes the object with the number of hash functions (nfuncs), the number of bands (bands) used to partition the signature matrix. The attribute hash_tables is initially set to None.
 
@@ -189,6 +187,40 @@ neighbors: This method takes two arguments, the similarity threshold and the fun
 get_nearest_neighbors: This method tries to return the points that are similar to a query. This is done by hashing the query and returning the hashed bucket plus the buckets within the specified radius.
 
 ### Usage
-To use the implementation, you need to create an object of the LSH class and call its fit method to fit the model to the input data. You can then call the `get_nearest
+To use the LSH implementation, you need to start by creating a vocabulary of the words that appear in your documents. Then, create a one-hot matrix that represents each document, where each row corresponds to a word in the vocabulary and each column corresponds to a document.
+```
+# one hot representation of each document
+one_hot_matrix = stack([one_hot_encoding(vocabulary, sent) for sent in data]).T
+```
+
+Next, create an LSH object, providing the number of hash functions to use (nfuncs) and the number of bands to use (bands). Then, call the fit method to create the hash tables.
+```
+# create LSH model providing the bands magnitude and the number of hash functions/permutations
+# in fit hashes each column for each band of the sign matrix M to a hash table with k buckets
+lsh = LSH(nfuncs=50, bands=5).fit(data=one_hot_matrix, num_buckets=1000)
+```
+
+To retrieve the similar documents, use the neighbors method. Provide a similarity threshold value (similar) and a distance function (dist_func) that computes the similarity between two documents.
+```
+# get neighbors with similarity bigger than 65%
+actual_neighbors = lsh.neighbors(similar=0.65, dist_func=cosine_similarity)
+# actual_neighbors = lsh.neighbors(similar=0.65, dist_func=jaccard)
+print(actual_neighbors, end='\n\n')
+```
+
+You can also retrieve the nearest neighbors of a given query vector. Pass the query vector to the get_nearest_neighbors method, providing a radius value (radius) to control the maximum distance from the query vector to the retrieved neighbors.
+```
+import numpy as np
+q_vec = np.random.choice(2, len(vocabulary))
+
+# radius is defined as a percentage. 
+# radius=1 means retrieve all the similar documents (all the neigbors) while a smaller radius 
+# retrieves the neigbors that are % far from the query vector
+nearest_neighbors = lsh.get_nearest_neighbors(query=q_vec, radius=.1)
+
+print(nearest_neighbors)
+```
+
+
 
 
