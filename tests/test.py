@@ -27,7 +27,7 @@ if __name__ == "__main__":
     ####################### PREPROCCESS AND DATA FORMATION ###########################################
     
     # load datasets
-    dataset = read_csv('List_of_computer_scientists.csv')
+    dataset = read_csv('..\List_of_computer_scientists.csv')
 
     # surnames
     surnames = [fullname.split()[-1] for fullname in dataset['Name'].to_list()]
@@ -182,13 +182,13 @@ if __name__ == "__main__":
     ######################## R-Tree + LSH ##################################
 
     # average time to build R Tree
-    ds_build_time += [timeit(lambda: RTree().insert(points), number=n)]
+    ds_build_time += [timeit(lambda: RTree().build_tree(points), number=n)]
 
     # create RTree object
     rtree = RTree()
 
     # insert points
-    rtree.insert(points)
+    rtree.build_tree(points)
 
     # space requirments
     ds_space += [getsizeof(rtree)]
