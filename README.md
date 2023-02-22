@@ -203,7 +203,7 @@ lsh = LSH(nfuncs=50, bands=5).fit(data=one_hot_matrix, num_buckets=1000)
 
 To retrieve the similar documents, use the neighbors method. Provide a similarity threshold value (similar) and a distance function (dist_func) that computes the similarity between two documents.
 ```
-# get neighbors with similarity bigger than 65%
+# get documents that are at least 65% similar or greater
 actual_neighbors = lsh.neighbors(similar=0.65, dist_func=cosine_similarity)
 # actual_neighbors = lsh.neighbors(similar=0.65, dist_func=jaccard)
 print(actual_neighbors, end='\n\n')
