@@ -2,29 +2,21 @@
 ### Requirements
 This implementation requires Python 3.x.
 
+# Trees
 ## 2D Range Tree
-This repository contains a Python implementation of a 2D range tree, along with a simple example usage.  
-A 2D range tree is a data structure that can be used for efficient range searching in two-dimensional space. It's implemented using 1D range trees, one built on the x-coordinates and one built on the y-coordinates. The RangeTree1D class is implemented as a binary search tree where the nodes represent points and each node has a left and a right child representing the points that are less than or greater than the point at the node, respectively.
-
-### Implementation details
-The RangeTree2D class has three main methods:
-
-- __init__(self, points): The constructor for the class. Takes a list of points in 2D space represented as tuples of x, y coordinates.
-
-- _build_tree(self, points, depth): A recursive method that builds the 2D range tree. Takes a list of points and the current depth of the tree.
-
-- range_search(self, query, depth): A method that queries the tree and finds all points that lie within a specified range. Takes a tuple representing the range in (xmin, xmax, ymin, ymax) format and the current depth of the tree.
-
+A 2D range tree is a data structure that can be used for efficient range searching in two-dimensional space.The tree is constructed using a modified form of the k-d tree algorithm, where each node in the tree represents a split in the data along one of the two dimensions. Additionally, each node also contains a 1D range tree of the data points that fall within its region, to allow for efficient searches along the other dimension. The RangeTree1D class is implemented as a binary search tree where the nodes represent points and each node has a left and a right child representing the points that are less than or greater than the point at the node, respectively. 
 
 ### Usage
 To use the 2D range tree, you can create an instance of the RangeTree2D class and pass in a list of points in 2D space:
 ```
 points = [(1, 2), (3, 4), (5, 6), (7, 8), (9, 10)]
+# You can also create your own type of point as long as it's attributes can be indexed: x, y, payload = point[0], point[1], point[2]
 tree = RangeTree2D(points)
 ```
 You can then use the range_search method to query the tree and find all points that lie within a specified range:
 ```
-result = tree.range_search((2, 6, 3, 8))
+x_range, y_range = (2, 6), (3, 8)
+results = tree.range_search(x_range, y_range)
 print(result)  # [(3, 4), (5, 6)]
 ```
 
@@ -41,16 +33,64 @@ the search continues in only one of the subtrees, depending on which side of the
 ### Usage
 To use the KD-Tree, you'll need to create an instance of the KDTree class, passing in a list of points and the number of dimensions. For example:
 ```
-points = [[1, 2], [3, 4], [5, 6], [7, 8]]
-kdtree = KDTree(points, 2)
+points = [(1, 2), (3, 4), (5, 6), (7, 8), (9, 10)]
+# You can also create your own type of point as long as it's attributes can be indexed: x, y, payload = point[0], point[1], point[2]
+kdtree = KDTree(points, k=len(points[0]))
 ```
 Once you've created the KD-Tree, you can perform a range search by calling the range_search method, passing in a query range for each dimension.
 The method will return a list of all points in the tree that fall within the query range. For example:
 ```
-query = [[0, 3], [0, 3]]
+query = [(0, 3), (0, 4)]
 result = kdtree.range_search(query)
 print(result) # [[1, 2], [3, 4]]
 ```
+
+## QuadTree  
+QuadTrees are a tree data structure used for efficient 2D spatial partitioning. They divide a 2D space into 4 equal quadrants, and recursively partition each quadrant until all elements fit into a single node. This makes it possible to quickly find all elements in a given region, or determine if an element intersects with another element.
+
+
+### Usage
+To use the QuadTree, simply create a list of points (or Point objects) representing the points you wish to store in the tree. Then, define the ranges on each axis for the tree using the x_range and y_range variables.
+```
+# define ranges on each axis
+x_range = (2, 7)
+y_range = (0, 5)
+
+# create a list of Point objects
+points = [Point(2, 3), Point(5, 4), Point(6, 1), Point(3, 2), Point(4, 5), Point(5, 3)]
+
+# build quad tree with max 4 points per tile
+qtree = QuadTree(points=points, n=4)
+```
+
+You can then perform range searches and exact searches on the QuadTree. To perform a range search, define the range of the search by passing two Point objects representing the corners of the search region to the bounds_to_rect function, and then pass the resulting Rectangle object to the range_search method.
+```
+# define range of query by passing two point objects
+# and convert to rectangle tile
+search_region = QuadTree.bounds_to_rect(Point(x_range[0], y_range[0]), Point(x_range[1], y_range[1]))
+
+# make query
+results = qtree.range_search(search_region)
+print(f"Range Search:")
+print(results)
+```
+
+To perform an exact search, pass a Point object representing the point you wish to search for to the search method.
+```
+# exact seach query: true if found else false
+idx = randint(0, len(points)-1)
+assert True == qtree.search(points[idx])
+```
+
+You can also perform radius searches, which return all points within a given radius of a specified point. To perform a radius search, pass a point representing the center point of the search and a radius value to the search_radius method.
+```
+# radius search, for a given point return neighbors in radius r
+radius_points = qtree.search_radius(points[idx], 3)
+print("Radius Search:")
+print(radius_points)
+```
+
+
 
 ## R-Tree Implementation
 This is an implementation of an R-Tree, a spatial index data structure used to efficiently search and query 2D data sets.
@@ -96,54 +136,6 @@ before it must be split. If a node is split, its entries are distributed among t
 
 ### Contributions
 This implementation is intended as a simple starting point for those who want to learn about R-Trees. Contributions to improve the implementation or add new features are welcome.
-
-
-### QuadTree  
-A Python implementation of a QuadTree data structure for efficient 2D spatial partitioning.
-
-### Introduction
-QuadTrees are a tree data structure used for efficient 2D spatial partitioning. They divide a 2D space into 4 equal quadrants, and recursively partition each quadrant until all elements fit into a single node. This makes it possible to quickly find all elements in a given region, or determine if an element intersects with another element.
-
-### Features
-Insertion of points into the QuadTree
-Removal of points from the QuadTree
-Retrieval of points within a bounding box
-Retrieval of points within a radius
-Fast and efficient search for elements in a given region
-Installation
-To install the QuadTree library, simply clone the repository and run pip install . from the root directory.
-
-### Usage
-Here is an example of how to use the QuadTree to insert points, retrieve points within a bounding box, and visualize the structure of the tree:
-
-```
-from quadtree import QuadTree
-import matplotlib.pyplot as plt
-
-# Initialize the QuadTree with a bounding box
-bounds = (0, 0, 100, 100)
-qt = QuadTree(bounds, max_depth=5, max_elements=3)
-
-# Insert some points into the tree
-points = [(20, 20), (50, 50), (80, 80), (30, 30), (60, 60), (90, 90)]
-for point in points:
-    qt.insert(point)
-
-# Retrieve all points within a bounding box
-search_bounds = (40, 40, 70, 70)
-result = qt.query(search_bounds)
-print(result)
-
-# Visualize the structure of the tree
-fig, ax = plt.subplots()
-qt.plot(ax)
-plt.show()
-```
-
-Contributing
-If you would like to contribute to the QuadTree library, please feel free to submit a pull request.
-
-
 
 ## LSH Implementation
 This repository contains an implementation of Locality Sensitive Hashing (LSH) in Python, using Numpy and other libraries. The implementation includes two main classes: MinHash and LSH.
