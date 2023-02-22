@@ -10,6 +10,7 @@ from mdds.helpers import *
 from mdds.neigbors import LSH
 
 from numpy import stack
+from numpy.random import choice
 from pandas import read_csv
 
 
@@ -38,8 +39,7 @@ if __name__ == "__main__":
     actual_neigbors = lsh.neigbors(similar=0.65, dist_func=cosine_similarity)
     print(actual_neigbors, end='\n\n')
 
-    import numpy as np
-    q_vec = np.random.choice(2, len(vocabulary))
+    q_vec = choice(2, len(vocabulary))
     
     nearest_neigbors = lsh.get_nearest_neigbors(query=q_vec, radius=.1)
     

@@ -5,18 +5,16 @@
         def __init__(self, points, axis=0). 
             The init method is the constructor for the class and takes two inputs:
                 points: A list of points in 2D space represented as tuple of x, y coordinates
-                k: An integer representing the dimension of the space
+                axis: decides on which dimension to sort each time
         
         def _build_tree(self, points):
             The _build_tree method is a recursive method that takes two inputs:
                 points: A list of points that needs to be added to the tree
-                depth: An integer representing the current depth of the tree. This is used to decide
-                on which coordinate to split the points on.
 
         def range_search(self, x_range, y_range):
             The range_search method is used to query the tree and find all points that lie within a specified range. It takes two inputs:
-                query: A tuple representing the range in (xmin, xmax, ymin, ymax) format
-                depth: An integer representing the current depth of the tree.
+                x_range: Represents the range of x-coord. Could be any iterable containing 2 numbers
+                y_range: Represents the range of y-coord. Could be any iterable containing 2 numbers
 
 '''
 
@@ -83,7 +81,7 @@ class RangeTree1D:
         
         return Node(left=left, right=right, value=points[median])
     
-
+    # NOT USED
     def _get_values(self, range):
         if not self.root:
             return []

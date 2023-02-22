@@ -52,10 +52,14 @@ if __name__ == '__main__':
     ######################## R-Tree ##################################
 
     # create RTree object
-    rtree = RTree()
+    rtree = RTree(min_entries=2, max_entries=4)
 
     # insert points
-    rtree.insert(points)
+    for point in points:
+        rtree.insert(point)
+
+    # alternative way to build R-Tree
+    # rtree.build_tree(points)
 
     # define ranges on each axis
     x_range = stit.transform(['A', 'G'])

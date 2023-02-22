@@ -22,7 +22,7 @@ The QuadTree class has a number of methods for interacting with the tree:
     The bounds_to_rect method takes in two Point objects and returns a rectangle representing the boundary of the points.
     The subdivide method divides the current tile into four sub-tiles, creating new QuadTree instances for each.
     The insert method inserts a point into the tree by first checking if it lies within the boundary of the current tile. If there is space in the current tile and the point lies within the boundary, the point is added to the current tile. If the tile is already full, and has not been subdivided, it subdivides the tile and recursively insert the point into one of the subtiles.
-    The calculate_rectangle method calculate the rectangle that encloses all the points passed to the QuadTree.
+    The init_rectangle method calculate the rectangle that encloses all the points passed to the QuadTree.
     The Rectangle class has a number of methods for interacting with the rectangle
 
     __init__ takes in the position x,y and the width and height of the rectangle
@@ -64,8 +64,9 @@ class Rectangle:
 
 class QuadTree:
     def __init__(self, tile=None, points=[], n=4):
-
-        self.tile = tile if tile else self.calculate_rectangle(points) 
+        
+        # initialize tile fitting all possible points
+        self.tile = tile if tile else self.init_rectangle(points) 
 
         # each tile's capacity of maximum points
         self.capacity = n
@@ -78,7 +79,8 @@ class QuadTree:
            self.insert(point)
 
 
-    def bounds_to_rect(self, point1, point2):
+    @staticmethod
+    def bounds_to_rect(point1, point2):
         xmin, ymin = min(point1.x, point2.x), min(point1.y, point2.y)
         xmax, ymax = max(point1.x, point2.x), max(point1.y, point2.y)
         return Rectangle((xmin+xmax)/2, (ymin+ymax)/2, (xmax-xmin)/2, (ymax-ymin)/2)
@@ -125,7 +127,7 @@ class QuadTree:
     # should be large enough to enclose all the points that will be inserted into the tree. 
     # The simplest approach is to define the root rectangle with the minimum and maximum x and y coordinates of all the points in the dataset.
 
-    def calculate_rectangle(self, points):
+    def init_rectangle(self, points):
 
         # find min max for x-coord
         min_x = min(points, key=lambda p: p.x).x

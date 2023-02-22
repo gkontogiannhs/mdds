@@ -1,6 +1,4 @@
 '''
-class Node: Represents a node in the KD-Tree. Each node has a left child, right child, and a value.
-
 class KDTree: Represents the KD-Tree itself. The class has the following methods:
 
     __init__(self, points, k): 
@@ -27,6 +25,7 @@ class KDTree: Represents the KD-Tree itself. The class has the following methods
 
 
 class Node:
+    """ class Node: Represents a node in the KD-Tree. Each node has a left child, right child, and a value."""
     def __init__(self, left=None, right=None, value=None):
         self.left = left
         self.right = right

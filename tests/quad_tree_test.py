@@ -58,7 +58,7 @@ if __name__ == '__main__':
 
     # define range of query by passing two point objects
     # and convert to rectangle tile
-    search_region = qtree.bounds_to_rect(Point(x_range[0], y_range[0]), Point(x_range[1], y_range[1]))
+    search_region = QuadTree.bounds_to_rect(Point(x_range[0], y_range[0]), Point(x_range[1], y_range[1]))
 
     # make query
     results = qtree.range_search(search_region)

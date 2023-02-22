@@ -5,10 +5,14 @@ class Point:
         self.payload = payload
         self.id = id
 
+
     def __getitem__(self, index):
-        if index: return self.y
-        else: return self.x
-  
+        items = (self.x, self.y, self.payload)
+        try:
+            return items[index]
+        except IndexError:
+            raise IndexError
+
         
     def __repr__(self):
         return f'{self.x, self.y}: {repr(self.id)}'
@@ -16,3 +20,7 @@ class Point:
 
     def __str__(self):
         return f'({self.x}, {self.y})'
+    
+
+    def __len__(self):
+        return 2

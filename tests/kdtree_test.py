@@ -54,8 +54,8 @@ if __name__ == '__main__':
     y_range = (0, 5)
 
     # Create and build KD-Tree
-    kdtree = KDTree(points, k=2)
+    kdtree = KDTree(points, k=len(points[0]))
 
-    results = kdtree.range_search(query=(x_range, y_range))
+    results = kdtree.range_search(query=[x_range, y_range])
     print(f"Range Search:")
     print(results)

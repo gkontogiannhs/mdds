@@ -45,7 +45,7 @@ class MBRNode:
             If not, it chooses the child whose MBR would be least enlarged by the point and descends into that subtree.
         """
 
-        if self.is_leaf():
+        if self.is_leaf(): 
             return self
         else:
             return min(self.children, key=lambda node: node.get_mbr_enlargement(point)).get_leaf_for_point(point)
@@ -329,22 +329,27 @@ class RTree:
         self.max_entries = max_entries
         self.root = MBRNode(self.min_entries, self.max_entries, parent=None)
 
-    def insert(self, points):
+
+    def build_tree(self, points):
+        for point in points:
+            self.insert(point)
+
+
+    def insert(self, point):
         """
             This method takes a list of points as an argument, and finds the leaf node of the tree where the point should be inserted.
             It adds the point to that leaf node, and if the leaf node becomes overfull, it splits the node to maintain the balance of the tree.
             If the leaf node has less than the minimum number of entries, it combines the node with its siblings.
         """
-        for point in points:
             
-            leaf = self.root.get_leaf_for_point(point)
-            leaf.add_point(point)
-            
-            if leaf.is_overfull():
-                leaf.linear_split()
+        leaf = self.root.get_leaf_for_point(point)
+        leaf.add_point(point)
+        
+        if leaf.is_overfull():
+            leaf.linear_split()
 
-            elif len(leaf.points) < leaf.min_entries:
-                leaf.combine_with_siblings()
+        elif len(leaf.points) < leaf.min_entries:
+            leaf.combine_with_siblings()
 
 
     def range_search(self, rectangle):
