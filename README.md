@@ -99,34 +99,58 @@ The R-Tree partitions the space it indexes into rectangles, which can be thought
 Points in the data set are stored in leaves of the tree, while non-leaf nodes represent the rectangles that encompass their children.
 
 ### Getting Started
-The implementation consists of three classes: Point, Rectangle, and RTree.
-
-#### Point represents a point in 2D space with an x and y coordinate.
-#### Rectangle represents a rectangle in 2D space defined by its upper-left and lower-right corner coordinates.
-#### RTree is the main class for the R-Tree, which implements the core functionality of the R-Tree data structure.
+The implementation consists of three classes:  
+  **Point**: represents a point in 2D space with an x and y coordinate.  
+  **Rectangle**: represents a rectangle in 2D space defined by its upper-left and lower-right corner coordinates.  
+  **RTree**: is the main class for the R-Tree, which implements the core functionality of the R-Tree data structure.  
 
 ## Example Usage
 Here is an example of how you can use the R-Tree implementation:
+To use the R-Tree, simply create a list of points (or Point objects) representing the points you wish to store in the tree. Then, create an RTree object and insert the points into the tree using the insert method.
 ```
-from rtree import Point, Rectangle, RTree
+from mdds.trees import RTree, Rectangle
+from mdds.geometry import Point
 
-# Create a point
-point = Point(1, 2)
+# create RTree object
+rtree = RTree(min_entries=2, max_entries=4)
 
-# Create a rectangle
-rectangle = Rectangle(0, 0, 4, 4)
+# create a list of Point objects
+points = [Point(2, 3), Point(5, 4), Point(6, 1), Point(3, 2), Point(4, 5), Point(5, 3)]
 
-# Create an R-Tree
-rtree = RTree()
+# insert points
+for point in points:
+    rtree.insert(point)
+```
+Alternatively, you can build the R-Tree in one step by passing the list of Point objects to the build_tree method.
+```
+rtree.build_tree(points)
+```
 
-# Insert a point into the R-Tree
-rtree.insert(point)
+You can then perform range searches and exact searches on the R-Tree. To perform a range search, define the range of the search by passing two values for each axis representing the minimum and maximum values for that axis, and then pass a Rectangle object representing the search region to the range_search method.
+```
+# define ranges on each axis
+x_range =(1, 7)
+y_range = (0, 5)
 
-# Perform a range search on the R-Tree using a rectangle
-results = rtree.range_search(rectangle)
+# retrieve query data
+results = rtree.range_search(Rectangle(x_range[0], y_range[0], x_range[1], y_range[1]))
 
-# Check if a point exists in the R-Tree
-exists = rtree.exists(point)
+print("Range query:", str(results))
+```
+
+To perform an exact search, pass a Point object representing the point you wish to search for to the exists method.
+```
+idx = randint(0, len(points)-1)
+
+print("Searching for:", points[idx])
+print("Exists:", str(rtree.exists(points[idx])))
+```
+
+You can also delete a node from the R-Tree using the delete method.
+```
+print("Deleting node: ", str(points[idx]))
+rtree.delete(points[idx])
+print("Exists:", str(rtree.exists(points[idx])))
 ```
 
 ### Customizing the R-Tree
@@ -134,8 +158,6 @@ You can customize the R-Tree by changing the min_entries and max_entries paramet
 min_entries represents the minimum number of entries a node should contain, while max_entries represents the maximum number of entries a node can contain
 before it must be split. If a node is split, its entries are distributed among two new nodes such that the resulting nodes are as balanced as possible.
 
-### Contributions
-This implementation is intended as a simple starting point for those who want to learn about R-Trees. Contributions to improve the implementation or add new features are welcome.
 
 ## LSH Implementation
 This repository contains an implementation of Locality Sensitive Hashing (LSH) in Python, using Numpy and other libraries. The implementation includes two main classes: MinHash and LSH.
