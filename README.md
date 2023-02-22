@@ -158,6 +158,7 @@ You can customize the R-Tree by changing the min_entries and max_entries paramet
 min_entries represents the minimum number of entries a node should contain, while max_entries represents the maximum number of entries a node can contain
 before it must be split. If a node is split, its entries are distributed among two new nodes such that the resulting nodes are as balanced as possible.
 
+## Locality-sensitive hashing
 
 ### MinHash Class
 The MinHash class is used to generate a signature matrix of an input one-hot encoded matrix. The following methods are available in the MinHash class:
@@ -220,7 +221,3 @@ nearest_neighbors = lsh.get_nearest_neighbors(query=q_vec, radius=.1)
 
 print(nearest_neighbors)
 ```
-
-
-
-
