@@ -9,6 +9,8 @@ A 2D range tree is a data structure that can be used for efficient range searchi
 ### Usage
 To use the 2D range tree, you can create an instance of the RangeTree2D class and pass in a list of points in 2D space:
 ```
+from mdds.trees import RangeTree2D
+
 points = [(1, 2), (3, 4), (5, 6), (7, 8), (9, 10)]
 # You can also create your own type of point as long as it's attributes can be indexed: x, y, payload = point[0], point[1], point[2]
 tree = RangeTree2D(points)
@@ -33,6 +35,8 @@ the search continues in only one of the subtrees, depending on which side of the
 ### Usage
 To use the KD-Tree, you'll need to create an instance of the KDTree class, passing in a list of points and the number of dimensions. For example:
 ```
+from mdds.trees import KDTree
+
 points = [(1, 2), (3, 4), (5, 6), (7, 8), (9, 10)]
 # You can also create your own type of point as long as it's attributes can be indexed: x, y, payload = point[0], point[1], point[2]
 kdtree = KDTree(points, k=len(points[0]))
@@ -52,6 +56,8 @@ QuadTrees are a tree data structure used for efficient 2D spatial partitioning. 
 ### Usage
 To use the QuadTree, simply create a list of points (or Point objects) representing the points you wish to store in the tree. Then, define the ranges on each axis for the tree using the x_range and y_range variables.
 ```
+from mdds.trees import QuadTree
+
 # define ranges on each axis
 x_range = (2, 7)
 y_range = (0, 5)
@@ -158,44 +164,28 @@ You can customize the R-Tree by changing the min_entries and max_entries paramet
 min_entries represents the minimum number of entries a node should contain, while max_entries represents the maximum number of entries a node can contain
 before it must be split. If a node is split, its entries are distributed among two new nodes such that the resulting nodes are as balanced as possible.
 
-## Locality-sensitive hashing
+## Locality-sensitive hashing - LSH Implementation
 
 ### MinHash Class
-The MinHash class is used to generate a signature matrix of an input one-hot encoded matrix. The following methods are available in the MinHash class:
+The MinHash class is used to generate a signature matrix of an input one-hot encoded matrix. It uses a specified number of hash functions to create a matrix where each column represents the signature of one document. The signature is a compressed version of the one-hot encoded vector, where the position of the first non-zero value in each row of the signature matrix corresponds to the position of the first non-zero value in the corresponding row of the one-hot encoded matrix.  
 
-__init__: This method is the constructor of the class and initializes the object with the input one-hot encoded matrix, the number of hash functions (nfuncs), and the signature matrix (sign_matrix) which is initially set to None.
-
-_hash: This method creates a list of indices of the rows of the one-hot encoded matrix in a random order.
-
-build_functions: This method builds nfuncs number of hash functions by calling the _hash() method.
-
-_signature_matrix: This method creates the signature matrix of the input one-hot encoded matrix using the hash functions created by the build_functions() method. It assigns the signature matrix to the sign_matrix attribute of the class and returns the signature matrix.
 
 ### LSH Class
-The LSH class is used to perform approximate nearest neighbor search on the signature matrix using Locality Sensitive Hashing (LSH). 
-The following methods are available in the LSH class:
+The LSH class is used to perform approximate nearest neighbor search on the signature matrix. The class takes as input the signature matrix, the number of hash functions used to create the signature matrix, the number of bands to partition the signature matrix into, and a radius for searching. It first partitions the signature matrix into bands, and then hashes each band to a hash table with a specified number of buckets. Candidate column pairs are found by looking for columns that hash to the same bucket in at least one band. Finally, the class has a method for computing the similarity between the candidate pairs using a specified similarity function, and returning pairs that are above a certain similarity threshold.
 
-__init__: This method is the constructor of the class and initializes the object with the number of hash functions (nfuncs), the number of bands (bands) used to partition the signature matrix. The attribute hash_tables is initially set to None.
-
-partition_into_bands: This method partitions the signature matrix (sm) into bands number of bands.
-
-fit: This method is used to fit the LSH model to the input data. It creates an object of the MinHash class with the input data and nfuncs number of hash functions. It then creates the signature matrix using the _signature_matrix() method from the MinHash class. It then partitions the signature matrix into bands and uses the hash values of the columns of each band to create a list of hash tables with buckets number of buckets.
-
-_get_candidates: This method finds candidate column pairs for the input matrix by looking for columns that have the same hash value in the same band of the signature matrix (items in same buckets). It returns a set of candidate column pairs.
-
-neighbors: This method takes two arguments, the similarity threshold and the function to measure distance between points. It returns all the points that have similarity >= similar. This method finds similar columns in the input matrix based on the similarity function passed as an argument. By default, it uses the cosine similarity function. It uses the _find_candidates() method to find the candidate column pairs, then it filters false positives by their similarity and return the columns that have a similarity greater than the specified threshold.
-
-get_nearest_neighbors: This method tries to return the points that are similar to a query. This is done by hashing the query and returning the hashed bucket plus the buckets within the specified radius.
 
 ### Usage
 To use the LSH implementation, you need to start by creating a vocabulary of the words that appear in your documents. Then, create a one-hot matrix that represents each document, where each row corresponds to a word in the vocabulary and each column corresponds to a document.
 ```
+from mdds.helpers import one_hot_encoding
 # one hot representation of each document
 one_hot_matrix = stack([one_hot_encoding(vocabulary, sent) for sent in data]).T
 ```
 
 Next, create an LSH object, providing the number of hash functions to use (nfuncs) and the number of bands to use (bands). Then, call the fit method to create the hash tables.
 ```
+from mdds.neighbors import LSH
+
 # create LSH model providing the bands magnitude and the number of hash functions/permutations
 # in fit hashes each column for each band of the sign matrix M to a hash table with k buckets
 lsh = LSH(nfuncs=50, bands=5).fit(data=one_hot_matrix, num_buckets=1000)
