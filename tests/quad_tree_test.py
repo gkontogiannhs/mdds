@@ -53,6 +53,8 @@ if __name__ == '__main__':
     x_range = stit.transform(['A', 'G'])
     y_range = (0, 5)
 
+    print(f"Searching in range: X-{x_range}, Y-{y_range}")
+
     # build quad tree with max 4 points per tile
     qtree = QuadTree(points=points, n=4)
 
@@ -62,7 +64,7 @@ if __name__ == '__main__':
 
     # make query
     results = qtree.range_search(search_region)
-    print(f"Range Search:")
+    print(f"{len(results)} search results:")
     print(results)
 
     # exact seach query: true if found else false
@@ -71,5 +73,5 @@ if __name__ == '__main__':
 
     # radius search, for a given point return neigbors in radius r
     radius_points = qtree.search_radius(points[idx], 3)
-    print("Radius Search:")
+    print("Searching points by radius:")
     print(radius_points)

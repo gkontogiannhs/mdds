@@ -52,6 +52,7 @@ if __name__ == "__main__":
     x_range = stit.transform(['A', 'G'])
     y_range = (0, 5)
 
+    print(f"Searching in range: X-{x_range}, Y-{y_range}")
     ######################## Range Tree #################################
 
     # Create and build tree
@@ -59,5 +60,5 @@ if __name__ == "__main__":
 
     # make query
     results = range_tree.range_search(x_range, y_range)
-    print("Range Search results:")
+    print(f"{len(results)} search results:")
     print(results)

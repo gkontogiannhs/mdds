@@ -17,25 +17,7 @@
                 y_range: Represents the range of y-coord. Could be any iterable containing 2 numbers
 
 '''
-
-
-class Node:
-    '''
-        Represents a node in the range tree.
-        Each node has the following attributes:
-            - left: the left child node of the current node
-            - right: the right child node of the current node
-            - value: the point represented by the node
-            - y_tree: the 1D range tree built on the y-coordinates of the points represented by the current node
-    '''
-
-    def __init__(self, left=None, right=None, value=None, y_tree=None):
-        self.left = left
-        self.right = right
-        self.value = value
-        self.y_tree = y_tree
-
-
+from mdds.trees.nodes import Node
 class RangeTree1D:
     """
         RangeTree1D is a class that represents a 1-dimensional range tree.
@@ -44,6 +26,11 @@ class RangeTree1D:
         a left and a right child representing the points that are less than or greater than the point at the node, respectively. 
     """
     def __init__(self, points, axis=0):
+        """
+         The init method is the constructor for the class and takes two inputs:
+                points: A list of points in 2D space represented as tuple of x, y coordinates
+                axis: decides on which dimension to sort each time
+        """
         self.axis = axis
         self.root = self._build_tree(points)
     
@@ -66,7 +53,10 @@ class RangeTree1D:
 
 
     def _build_tree(self, points):
-
+        """
+        The _build_tree method is a recursive method that takes two inputs:
+                points: A list of points that needs to be added to the tree
+        """
         if not points: return None
 
         if len(points) == 1:

@@ -6,8 +6,8 @@ root_dir = dirname(dirname(abspath(__file__)))
 # Add the root directory to the system path
 path.append(root_dir)
 
-from mdds.trees import RTree, Rectangle
-from mdds.geometry import Point
+from mdds.trees import RTree
+from mdds.geometry import Point, Rectangle
 from mdds.helpers import *
 
 from pandas import read_csv

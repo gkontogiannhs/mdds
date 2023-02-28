@@ -13,17 +13,11 @@ signature matrix using Locality Sensitive Hashing (LSH).
 The MinHash class has the following methods and attributes:
 
     __init__(self, one_hot_matrix, nfuncs): 
-        This method is the constructor of the class. It initializes the object with the input one-hot encoded matrix, the number
-        of hash functions (nfuncs), and the signature matrix (sign_matrix) which is initially set to None.
-
+       
     _hash(self): 
-        This method creates a list of indices of the rows of the one-hot encoded matrix in a random order.
-        build_functions(self, nfuncs): This method builds nfuncs number of hash functions by calling the _hash() method.
-
+        
     _signature_matrix(self):
-        This method creates the signature matrix of the input one-hot encoded matrix using the hash functions created by
-        the build_functions() method. It assigns the signature matrix to the sign_matrix attribute of the class.
-        The method returns the signature matrix.
+
 
 
 The LSH class has the following methods and attributes:
@@ -60,6 +54,10 @@ The LSH class has the following methods and attributes:
 
 class MinHash:
     def __init__(self, one_hot_matrix, nfuncs):
+        """
+        This method is the constructor of the class. It initializes the object with the input one-hot encoded matrix, the number
+        of hash functions (nfuncs), and the signature matrix (sign_matrix) which is initially set to None.
+        """
 
         # one hot encoded matrix
         self.one_hot_matrix = one_hot_matrix
@@ -78,6 +76,10 @@ class MinHash:
 
 
     def _hash(self):
+        """
+        This method creates a list of indices of the rows of the one-hot encoded matrix in a random order.
+        build_functions(self, nfuncs): This method builds nfuncs number of hash functions by calling the _hash() method.
+        """
 
         # one_hot indices vector
         hash_indices = list(range(1, self.shape[0]+1))
@@ -96,7 +98,11 @@ class MinHash:
     # create hash method takes as input a one hot encoded vector 
     # and produces a compressed vector signature for it
     def _signature_matrix(self):
-        
+        """
+        This method creates the signature matrix of the input one-hot encoded matrix using the hash functions created by
+        the build_functions() method. It assigns the signature matrix to the sign_matrix attribute of the class.
+        The method returns the signature matrix.
+        """
         # sign_matrix = []
         sign_matrix = empty(shape=(self.nfuncs, self.shape[1]), dtype=int)
 
@@ -125,7 +131,10 @@ class MinHash:
 
 class LSH:
     def __init__(self, nfuncs, bands):
-
+        """
+        This method is the constructor of the class. It initializes the object with the number of hash functions (nfuncs), the number of
+        bands (bands) used to partition the signature matrix. The attribute hash_tables is initially an empty list.
+        """
         # shingle size
         self.nfuncs = nfuncs
         
@@ -138,6 +147,9 @@ class LSH:
 
     # class method to partition signature matrix into b bands
     def partition_into_bands(self, sm):
+        """
+        This method partitions the signature matrix (sm) into bands number of bands.
+        """
 
         # make sure signature can be split into b bands
         assert sm.shape[0] % self.bands == 0
@@ -154,6 +166,12 @@ class LSH:
 
     # Hash each band of the matrix M to a hash table with k buckets
     def fit(self, data, num_buckets):
+        """
+        This method is used to fit the LSH model to the input data. It creates an object of the MinHash class with
+        the input data and nfuncs number of hash functions. It then creates the signature matrix using the _signature_matrix()
+        method from the MinHash class. It then partitions the signature matrix into bands and uses the hash values of the columns
+        of each band to create a list of hash tables with buckets number of buckets.
+        """
 
         self.num_buckets = num_buckets
         
@@ -209,6 +227,10 @@ class LSH:
 
 
     def _get_candidates(self):
+        """
+        This method finds candidate column pairs for the input matrix by looking for columns that have the same hash value
+        in the same band of the signature matrix (items in same buckets). It returns a set of candidate column pairs.
+        """
 
         # Initialize a set to store the candidate column pairs
         candidates = [set() for _ in range(self.num_buckets)]
@@ -229,7 +251,14 @@ class LSH:
         return candidates  
       
 
-    def neigbors(self, similar=.6, dist_func=cosine_similarity):
+    def neighbors(self, similar=.6, dist_func=cosine_similarity):
+        """
+        This method takes two arguments, the similar threshold and the function to measure distance between points.
+        It returns all the points that have similarity >= similar. This method finds similar columns in the input matrix based on the
+        similarity function passed as an argument. By default, it uses the cosine similarity function. It uses the _find_candidates()
+        method to find the candidate column pairs, then it filters false positives by their similarity and return the columns that
+        have a similarity greater than the specified threshold
+        """
         
         # fetch unfiltered candidates
         cands = set().union(*self._get_candidates())
@@ -248,7 +277,11 @@ class LSH:
         return actual_neigbors
 
 
-    def get_nearest_neigbors(self, query, radius=.1):
+    def get_nearest_neighbors(self, query, radius=.1):
+        """
+        This method, tries to return the points that are similar to a query. This is done by hashing the query and returning the 
+        hashed bucket plus the buckets within the specified raddius.
+        """
         
         # get concatenated form of hashed band buckets
         buckets = self._get_candidates()

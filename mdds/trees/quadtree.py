@@ -12,9 +12,6 @@
 
 
 """"
-The QuadTree class takes an optional tile argument, which is a Rectangle object representing the boundary of the current node,
-and an optional points argument, which is a list of Point objects to insert into the tree. The n argument specifies
-the maximum number of points that a tile can contain before it needs to be divided into four sub-tiles.
 
 The QuadTree class has a number of methods for interacting with the tree:
 
@@ -64,6 +61,11 @@ class Rectangle:
 
 class QuadTree:
     def __init__(self, tile=None, points=[], n=4):
+        """
+        The QuadTree class takes an optional tile argument, which is a Rectangle object representing the boundary of the current node,
+        and an optional points argument, which is a list of Point objects to insert into the tree. The n argument specifies
+        the maximum number of points that a tile can contain before it needs to be divided into four sub-tiles.
+        """
         
         # initialize tile fitting all possible points
         self.tile = tile if tile else self.init_rectangle(points) 

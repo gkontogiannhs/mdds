@@ -52,10 +52,11 @@ if __name__ == '__main__':
     # define ranges on each axis
     x_range = stit.transform(['A', 'G'])
     y_range = (0, 5)
+    print(f"Searching in range: X-{x_range}, Y-{y_range}")
 
     # Create and build KD-Tree
     kdtree = KDTree(points, k=len(points[0]))
 
     results = kdtree.range_search(query=[x_range, y_range])
-    print(f"Range Search:")
+    print(f"{len(results)} search results:")
     print(results)

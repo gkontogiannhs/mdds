@@ -23,22 +23,26 @@ class KDTree: Represents the KD-Tree itself. The class has the following methods
         A public method that starts the range search at the root of the tree.
 '''
 
-
-class Node:
-    """ class Node: Represents a node in the KD-Tree. Each node has a left child, right child, and a value."""
-    def __init__(self, left=None, right=None, value=None):
-        self.left = left
-        self.right = right
-        self.value = value
-
-
+from mdds.trees.nodes import Node
 class KDTree:
+    
     def __init__(self, points, k):
+        """
+            Initializes the KD-Tree with a list of points and the number of dimensions (k) of each point.
+            The constructor also calls the _build_tree method to build the tree.
+        """
         self.points = points
         self.k = k
         self.tree = self._build_tree(points)
 
+
     def _build_tree(self, points, depth=0):
+        """
+            A helper method that recursively builds the KD-Tree. It takes the current list of points and the current depth
+            of the tree as input. At each level of recursion, it sorts the points by the axis specified by the current depth,
+            chooses the median point, and creates a new node with that point as the value. The left and right children of the node
+            are the results of recursively building the tree on the points to the left and right of the median, respectively.
+        """
 
         _axis = depth % self.k
         
@@ -55,6 +59,14 @@ class KDTree:
 
 
     def _range_search(self, node, query, depth):
+        """
+            A helper method that does a range search on the KD-Tree. It takes a node, a query (a list of ranges for each dimension),
+            and the current depth of the search as input. The method recursively traverses the tree, checking if the value at the
+            current node is within the query range. If it is, it adds it to the list of matches. If the query range
+            intersects the range of values along the current axis, it continues the search in both the left and right subtrees.
+            If the value at the current node is smaller than the lower bound of the query range along the current axis, it continues
+            the search in the right subtree. Otherwise, it continues the search in the left subtree.
+        """
         # If the current node is None, return an empty list
         if node is None:
             return []

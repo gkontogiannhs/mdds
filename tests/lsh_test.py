@@ -7,7 +7,7 @@ root_dir = dirname(dirname(abspath(__file__)))
 path.append(root_dir)
 
 from mdds.helpers import *
-from mdds.neigbors import LSH
+from mdds.neighbors import LSH
 
 from numpy import stack
 from numpy.random import choice
@@ -35,13 +35,16 @@ if __name__ == "__main__":
     # in fit hashes each column for each band of the sign matrix M to a hash table with k buckets
     lsh = LSH(nfuncs=50, bands=5).fit(data=one_hot_matrix, num_buckets=1000)
 
-    # get neigbors with similarity bigger than 60%
-    actual_neigbors = lsh.neigbors(similar=0.65, dist_func=cosine_similarity)
+    # get neigbors with similarity bigger than 65%
+    print("All point pairs in space with similarity >= 65%")
+    actual_neigbors = lsh.neighbors(similar=0.65, dist_func=cosine_similarity)
     print(actual_neigbors, end='\n\n')
 
     q_vec = choice(2, len(vocabulary))
     
-    nearest_neigbors = lsh.get_nearest_neigbors(query=q_vec, radius=.1)
+    r=0.1 # radius to search
+    nearest_neigbors = lsh.get_nearest_neighbors(query=q_vec, radius=r)
+    print(f"All point pairs withing radius {r} of query")
     
     print(nearest_neigbors)
 
