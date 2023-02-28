@@ -1,6 +1,6 @@
 # Multi-Dimensional-DS
 ### Requirements
-This implementation requires Python 3.x.
+This implementation requires Python 3.x and numpy version 1.22.4, which can be installed using **`pip install numpy==1.22.4`**.
 
 # Trees
 ## 2D Range Tree

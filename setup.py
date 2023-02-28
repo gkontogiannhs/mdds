@@ -10,5 +10,6 @@ setup(
     author_email='gekontog@hotmail.com',
     description='A multi-dimensional data structures package',
     install_requires=[
+        'numpy'
     ],
 )
