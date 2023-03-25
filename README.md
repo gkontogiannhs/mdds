@@ -1,4 +1,4 @@
-# Multi-Dimensional-DS
+# Multi-Dimensional Data Structures Package
 ### Requirements
 This implementation requires Python 3.x and numpy version 1.22.4, which can be installed using **`pip install numpy==1.22.4`**.
 
